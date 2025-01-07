@@ -1,0 +1,100 @@
+basePath: /
+definitions:
+  types.CommonApiResponse:
+    properties:
+      code:
+        description: code
+        type: integer
+      data:
+        description: data
+      msg:
+        description: message
+        type: string
+    type: object
+info:
+  contact: {}
+  title: go-api-template
+  version: "1.0"
+paths:
+  /api/v1/delayed-health:
+    get:
+      consumes:
+      - application/json
+      description: 延迟响应测试接口
+      parameters:
+      - description: delay time(second)
+        in: query
+        name: delay_sec
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponse'
+      summary: 延迟响应测试接口
+      tags:
+      - Auxiliary API
+  /api/v1/echo-get:
+    get:
+      consumes:
+      - application/json
+      description: 回显请求信息(get)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponse'
+      summary: 回显请求信息(get)
+      tags:
+      - Auxiliary API
+  /api/v1/echo-post:
+    post:
+      consumes:
+      - application/json
+      description: 回显请求信息(post)
+      parameters:
+      - description: Request Body
+        in: body
+        name: params
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponse'
+      summary: 回显请求信息(post)
+      tags:
+      - Auxiliary API
+  /api/v1/health:
+    get:
+      consumes:
+      - application/json
+      description: 健康检查接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponse'
+      summary: 健康检查接口
+      tags:
+      - Auxiliary API
+schemes:
+- http
+- https
+securityDefinitions:
+  Authorization:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

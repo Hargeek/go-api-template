@@ -1,0 +1,152 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "title": "go-api-template",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/api/v1/delayed-health": {
+            "get": {
+                "description": "延迟响应测试接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary API"
+                ],
+                "summary": "延迟响应测试接口",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "delay time(second)",
+                        "name": "delay_sec",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CommonApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/echo-get": {
+            "get": {
+                "description": "回显请求信息(get)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary API"
+                ],
+                "summary": "回显请求信息(get)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CommonApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/echo-post": {
+            "post": {
+                "description": "回显请求信息(post)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary API"
+                ],
+                "summary": "回显请求信息(post)",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CommonApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "description": "健康检查接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary API"
+                ],
+                "summary": "健康检查接口",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CommonApiResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "types.CommonApiResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data"
+                },
+                "msg": {
+                    "description": "message",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Authorization": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
