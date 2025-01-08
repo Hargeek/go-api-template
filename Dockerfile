@@ -1,4 +1,4 @@
-FROM golang:1.22.6-alpine AS build-env
+FROM registry.cn-beijing.aliyuncs.com/ssgeek/golang:1.22.6-alpine AS build-env
 
 ENV GOSUMDB=off \
     GO111MODULE=on \
@@ -23,12 +23,13 @@ RUN --mount=type=cache,target=/var/cache/apk --mount=type=cache,target=/etc/apk/
     && apk add --no-cache git make \
     && make buildx
 
-FROM alpine:3.14.0
+FROM registry.cn-beijing.aliyuncs.com/ssgeek/alpine:3.14.0
+
 RUN ln -s /var/cache/apk /etc/apk/cache
 RUN --mount=type=cache,target=/var/cache/apk --mount=type=cache,target=/etc/apk/cache \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && apk update --no-cache \
-    && apk add --no-cache ca-certificates tzdata bash curl git
+    && apk add --no-cache ca-certificates tzdata bash curl
 
 COPY --from=build-env /bin/server /server
 
