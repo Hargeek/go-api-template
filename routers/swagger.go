@@ -2,8 +2,8 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go-api-template/common/logger"
 	"go-api-template/docs"
 	swagDoc "go-api-template/docs"
