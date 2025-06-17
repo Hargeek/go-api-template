@@ -14,16 +14,12 @@ import (
 )
 
 var (
-	isInit bool
-	GORM   *gorm.DB
-	DB     *sql.DB
-	err    error
+	GORM *gorm.DB
+	DB   *sql.DB
+	err  error
 )
 
-func Init() {
-	if isInit {
-		return
-	}
+func newDBWithConfig() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		config.AppConfig.DataBaseConfig.Host,
 		config.AppConfig.DataBaseConfig.Username,
@@ -53,13 +49,19 @@ func Init() {
 	sqlDB.SetMaxOpenConns(config.AppConfig.DataBaseConfig.MaxOpen)
 	sqlDB.SetConnMaxLifetime(time.Duration(config.AppConfig.DataBaseConfig.MaxLife) * time.Second)
 
-	isInit = true
 	logger2.Info(fmt.Sprintf("%s database connected success",
 		config.AppConfig.DataBaseConfig.Host+":"+
 			fmt.Sprintf("%d", config.AppConfig.DataBaseConfig.Port)+"/"+
 			config.AppConfig.DataBaseConfig.Database))
 
 	DB = sqlDB
+}
+
+func GetGORM() *gorm.DB {
+	if GORM == nil {
+		newDBWithConfig()
+	}
+	return GORM
 }
 
 func Close() error {
