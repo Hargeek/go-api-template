@@ -2,7 +2,7 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-api-template/controller"
+	"go-api-template/handler/controller"
 )
 
 func (r *router) InitAuxiliaryRouter(api *gin.RouterGroup) {

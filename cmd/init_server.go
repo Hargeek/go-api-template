@@ -3,7 +3,7 @@ package cmd
 import (
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
-	"go-api-template/store/db"
+	"go-api-template/internal/store/db"
 )
 
 func init() {

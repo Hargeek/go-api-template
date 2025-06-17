@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 	errort "go-api-template/common/error"
 	"go-api-template/common/types"
-	"go-api-template/store/db"
+	"go-api-template/internal/store/db"
 	"io"
 	"net/http"
 	"strings"

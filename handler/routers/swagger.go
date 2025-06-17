@@ -7,12 +7,12 @@ import (
 	"go-api-template/common/logger"
 	"go-api-template/docs"
 	swagDoc "go-api-template/docs"
-	"go-api-template/resource"
+	"go-api-template/static"
 )
 
 func (r *router) RegisterSwagger(e *gin.Engine) {
 	// programmatically set swagger info description
-	content, err := resource.GetErrorCodeEmbed().ReadFile("error_code/error_code.md")
+	content, err := static.GetErrorCodeEmbed().ReadFile("error_code/error_code.md")
 	if err != nil {
 		logger.Panic("error reading error code file: ", err)
 		return
