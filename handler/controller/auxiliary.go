@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 	errort "go-api-template/common/error"
 	"go-api-template/common/types"
-	"go-api-template/internal/store/db"
+	res "go-api-template/common/types/response"
 	"io"
 	"net/http"
 	"strings"
@@ -23,22 +23,18 @@ type auxiliary struct{}
 // @Summary     健康检查接口
 // @Description 健康检查接口
 // @Tags        Auxiliary API
-// @Success     200    {object} types.CommonApiResponse
+// @Success     200    {object} res.CommonApiResponseData
 // @Router      /api/v1/health [get]
 func (*auxiliary) GetHealthy(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": errort.NoError,
-		"data": gin.H{
-			"service_name": types.ServiceName,
-			"branch":       types.Branch,
-			"env":          viper.GetString("env"),
-			"revision":     types.Revision,
-			"build_date":   types.BuildDate,
-			"build_user":   types.BuildUser,
-			"go_version":   types.GoVersion,
-			"db_status":    db.DB.Stats(),
-		},
-		"msg": "It is healthy!",
+	res.ApiResponse(ctx, http.StatusOK, errort.NoError, "It is healthy!", gin.H{
+		"service_name": types.ServiceName,
+		"branch":       types.Branch,
+		"env":          viper.GetString("env"),
+		"revision":     types.Revision,
+		"build_date":   types.BuildDate,
+		"build_user":   types.BuildUser,
+		"go_version":   types.GoVersion,
+		//"db_status":    db.DB.Stats(),
 	})
 }
 
@@ -50,7 +46,7 @@ func (*auxiliary) GetHealthy(ctx *gin.Context) {
 // @Description 延迟响应测试接口
 // @Tags        Auxiliary API
 // @Param       delay_sec query    int true "delay time(second)"
-// @Success     200       {object} types.CommonApiResponse
+// @Success     200       {object} res.CommonApiResponseData
 // @Router      /api/v1/delayed-health [get]
 func (*auxiliary) GetDelayedHealthy(ctx *gin.Context) {
 	params := new(struct {
@@ -65,11 +61,7 @@ func (*auxiliary) GetDelayedHealthy(ctx *gin.Context) {
 	}
 
 	time.Sleep(time.Duration(params.DelaySec) * time.Second)
-	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "It is " + ctx.Query("delay_sec") + " second delayed healthy!",
-		"data": nil,
-		"code": errort.NoError,
-	})
+	res.ApiResponse(ctx, http.StatusOK, errort.NoError, "It is "+ctx.Query("delay_sec")+" second delayed healthy!", nil)
 }
 
 // EchoAnyGet 回显请求信息(get)
@@ -79,24 +71,20 @@ func (*auxiliary) GetDelayedHealthy(ctx *gin.Context) {
 // @Summary     回显请求信息(get)
 // @Description 回显请求信息(get)
 // @Tags        Auxiliary API
-// @Success     200 {object} types.CommonApiResponse
+// @Success     200 {object} types.CommonApiResponseData
 // @Router      /api/v1/echo-get [get]
 func (*auxiliary) EchoAnyGet(ctx *gin.Context) {
 	headers := make(map[string]string)
 	for key, value := range ctx.Request.Header {
 		headers[key] = strings.Join(value, ",")
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": errort.NoError,
-		"data": gin.H{
-			"client_ip":       ctx.ClientIP(),
-			"remote_addr":     ctx.Request.RemoteAddr,
-			"request_uri":     ctx.Request.RequestURI,
-			"request_path":    ctx.Request.URL.Path,
-			"x-forwarded-for": ctx.GetHeader("X-Forwarded-For"),
-			"request_headers": headers,
-		},
-		"msg": "It is echo get!",
+	res.ApiResponse(ctx, http.StatusOK, errort.NoError, "It is echo get!", gin.H{
+		"client_ip":       ctx.ClientIP(),
+		"remote_addr":     ctx.Request.RemoteAddr,
+		"request_uri":     ctx.Request.RequestURI,
+		"request_path":    ctx.Request.URL.Path,
+		"x-forwarded-for": ctx.GetHeader("X-Forwarded-For"),
+		"request_headers": headers,
 	})
 }
 
@@ -108,7 +96,7 @@ func (*auxiliary) EchoAnyGet(ctx *gin.Context) {
 // @Description 回显请求信息(post)
 // @Tags        Auxiliary API
 // @Param       params body     interface{} true "Request Body""
-// @Success     200 {object} types.CommonApiResponse
+// @Success     200 {object} res.CommonApiResponseData
 // @Router      /api/v1/echo-post [post]
 func (*auxiliary) EchoAnyPost(ctx *gin.Context) {
 	headers := make(map[string]string)
@@ -117,17 +105,13 @@ func (*auxiliary) EchoAnyPost(ctx *gin.Context) {
 	}
 	bodyBytes, _ := io.ReadAll(ctx.Request.Body)
 	defer ctx.Request.Body.Close()
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": errort.NoError,
-		"data": gin.H{
-			"client_ip":        ctx.ClientIP(),
-			"remote_addr":      ctx.Request.RemoteAddr,
-			"request_uri":      ctx.Request.RequestURI,
-			"request_path":     ctx.Request.URL.Path,
-			"x-forwarded-for":  ctx.GetHeader("X-Forwarded-For"),
-			"request_headers":  headers,
-			"request_body_str": string(bodyBytes),
-		},
-		"msg": "It is echo post!",
+	res.ApiResponse(ctx, http.StatusOK, errort.NoError, "It is echo post!", gin.H{
+		"client_ip":        ctx.ClientIP(),
+		"remote_addr":      ctx.Request.RemoteAddr,
+		"request_uri":      ctx.Request.RequestURI,
+		"request_path":     ctx.Request.URL.Path,
+		"x-forwarded-for":  ctx.GetHeader("X-Forwarded-For"),
+		"request_headers":  headers,
+		"request_body_str": string(bodyBytes),
 	})
 }
