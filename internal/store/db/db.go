@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"go-api-template/common/config"
-	logger2 "go-api-template/common/logger"
+	"go-api-template/common/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormLog "gorm.io/gorm/logger"
 	"log"
 	"os"
 	"sync"
@@ -29,13 +29,13 @@ func newDBWithConfig() {
 		config.AppConfig.DataBaseConfig.Database,
 		config.AppConfig.DataBaseConfig.Port,
 	)
-	logLevel := logger.Silent
+	logLevel := gormLog.Silent
 	if config.AppConfig.DataBaseConfig.LogMode {
-		logLevel = logger.Warn
+		logLevel = gormLog.Warn
 	}
-	newLogger := logger.New(
+	newLogger := gormLog.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
+		gormLog.Config{
 			SlowThreshold: 3 * time.Second, // Slow SQL threshold
 			LogLevel:      logLevel,        // Log level
 			Colorful:      false,           // Disable color
@@ -55,7 +55,7 @@ func newDBWithConfig() {
 	sqlDB.SetMaxOpenConns(config.AppConfig.DataBaseConfig.MaxOpen)
 	sqlDB.SetConnMaxLifetime(time.Duration(config.AppConfig.DataBaseConfig.MaxLife) * time.Second)
 
-	logger2.Info(fmt.Sprintf("%s database connected success",
+	logger.Info(fmt.Sprintf("%s database connected success",
 		config.AppConfig.DataBaseConfig.Host+":"+
 			fmt.Sprintf("%d", config.AppConfig.DataBaseConfig.Port)+"/"+
 			config.AppConfig.DataBaseConfig.Database))
@@ -71,6 +71,6 @@ func GetGORM() *gorm.DB {
 }
 
 func Close() error {
-	logger2.Info("closing db connection...")
+	logger.Info("closing db connection...")
 	return DB.Close()
 }
