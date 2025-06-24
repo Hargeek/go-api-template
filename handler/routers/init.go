@@ -12,5 +12,6 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 	api := router.Group("/api/v1")
 	{
 		r.InitAuxiliaryRouter(api)
+		r.InitHelloRouter(api)
 	}
 }
