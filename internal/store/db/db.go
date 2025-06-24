@@ -10,13 +10,15 @@ import (
 	"gorm.io/gorm/logger"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
 var (
-	GORM *gorm.DB
-	DB   *sql.DB
-	err  error
+	GORM   *gorm.DB
+	DB     *sql.DB
+	err    error
+	dbOnce sync.Once
 )
 
 func newDBWithConfig() {
@@ -27,12 +29,16 @@ func newDBWithConfig() {
 		config.AppConfig.DataBaseConfig.Database,
 		config.AppConfig.DataBaseConfig.Port,
 	)
+	logLevel := logger.Silent
+	if config.AppConfig.DataBaseConfig.LogMode {
+		logLevel = logger.Warn
+	}
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
-			SlowThreshold: time.Second,   // Slow SQL threshold
-			LogLevel:      logger.Silent, // Log level
-			Colorful:      false,         // Disable color
+			SlowThreshold: 3 * time.Second, // Slow SQL threshold
+			LogLevel:      logLevel,        // Log level
+			Colorful:      false,           // Disable color
 		},
 	)
 	GORM, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -58,9 +64,9 @@ func newDBWithConfig() {
 }
 
 func GetGORM() *gorm.DB {
-	if GORM == nil {
+	dbOnce.Do(func() {
 		newDBWithConfig()
-	}
+	})
 	return GORM
 }
 

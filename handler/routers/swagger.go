@@ -7,7 +7,7 @@ import (
 	"go-api-template/common/logger"
 	"go-api-template/docs"
 	swagDoc "go-api-template/docs"
-	"go-api-template/static"
+	"go-api-template/internal/static"
 )
 
 func (r *router) RegisterSwagger(e *gin.Engine) {
