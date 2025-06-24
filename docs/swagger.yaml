@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  types.CommonApiResponse:
+  types.CommonApiResponseData:
     properties:
       code:
         description: code
@@ -33,7 +33,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.CommonApiResponse'
+            $ref: '#/definitions/types.CommonApiResponseData'
       summary: 延迟响应测试接口
       tags:
       - Auxiliary API
@@ -48,7 +48,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.CommonApiResponse'
+            $ref: '#/definitions/types.CommonApiResponseData'
       summary: 回显请求信息(get)
       tags:
       - Auxiliary API
@@ -70,7 +70,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.CommonApiResponse'
+            $ref: '#/definitions/types.CommonApiResponseData'
       summary: 回显请求信息(post)
       tags:
       - Auxiliary API
@@ -85,7 +85,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.CommonApiResponse'
+            $ref: '#/definitions/types.CommonApiResponseData'
       summary: 健康检查接口
       tags:
       - Auxiliary API

@@ -37,7 +37,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -60,7 +60,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -94,7 +94,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -117,7 +117,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -125,7 +125,7 @@
         }
     },
     "definitions": {
-        "types.CommonApiResponse": {
+        "types.CommonApiResponseData": {
             "type": "object",
             "properties": {
                 "code": {

@@ -42,7 +42,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -65,7 +65,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -99,7 +99,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -122,7 +122,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.CommonApiResponse"
+                            "$ref": "#/definitions/types.CommonApiResponseData"
                         }
                     }
                 }
@@ -130,7 +130,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "types.CommonApiResponse": {
+        "types.CommonApiResponseData": {
             "type": "object",
             "properties": {
                 "code": {
