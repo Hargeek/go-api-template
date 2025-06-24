@@ -22,29 +22,38 @@
 │   └── types               # 类型定义
 ├── config                  # 配置文件
 │   └── conf.yaml.example   # 示例配置文件
-├── controller              # 控制器层，处理请求和响应
-│   └── auxiliary.go        # 示例控制器
+├── Dockerfile              # Dockerfile，用于构建镜像
 ├── docs                    # 文档
 │   ├── docs.go             # Swagger 文档生成
 │   ├── swagger.json        # Swagger JSON 文件
 │   └── swagger.yaml        # Swagger YAML 文件
 ├── go.mod                  # Go 模块定义
 ├── go.sum                  # Go 模块校验
+├── handler                 # 处理请求的逻辑
+│   ├── controller          # 控制器层，处理请求和响应
+│   │   ├── auxiliary.go    # 示例控制器
+│   │   └── hello.go        # 示例控制器
+│   ├── middle              # 中间件
+│   │   ├── cors.go         # 跨域中间件
+│   │   └── logger.go       # 访问日志中间件
+│   └── routers             # 路由定义
+├── internal                # 内部包
+│   ├── service             # 服务层，处理业务逻辑
+│   ├── static              # 静态资源
+│   │   ├── embed.go        # 静态资源嵌入
+│   │   ├── error_code      # 错误码说明文档（Markdown 格式）
+│   │   └── static_resource # 其他静态资源
+│   └── store
+│       ├── dao             # 数据访问层（CRUD 操作）
+│       ├── db              # 数据库连接
+│       └── model           # 数据模型
+├── LICENSE
 ├── main.go                 # 程序入口
-├── middle                  # 中间件
-│   ├── cors.go             # 跨域中间件
-│   └── logger.go           # 访问日志中间件
-├── resource                # 静态资源
-│   ├── embed.go            # 静态资源嵌入
-│   ├── error_code          # 错误码说明文档（Markdown 格式）
-│   └── static_resource     # 其他静态资源
-├── routers                 # 路由定义
-├── service                 # 服务层，处理业务逻辑
-├── store                   # 存储层
-│   ├── dao                 # 数据访问层（CRUD 操作）
-│   ├── db                  # 数据库连接
-│   └── model               # 数据模型
-└── utils                   # 工具代码，常用工具函数
+├── Makefile
+├── pkg                     # 公共包
+│   └── utils               # 工具代码，常用工具函数
+├── README.md
+└── scripts                 # 脚本目录
 ```
 
 ## 开箱即用
