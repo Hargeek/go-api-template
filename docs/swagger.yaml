@@ -89,6 +89,21 @@ paths:
       summary: 健康检查接口
       tags:
       - Auxiliary API
+  /api/v1/hello:
+    get:
+      consumes:
+      - application/json
+      description: Hello World 接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: Hello World 接口
+      tags:
+      - Hello API
 schemes:
 - http
 - https
