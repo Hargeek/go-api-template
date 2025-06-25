@@ -104,6 +104,27 @@ paths:
       summary: Hello World 接口
       tags:
       - Hello API
+  /api/v1/weather:
+    get:
+      consumes:
+      - application/json
+      description: 查询指定城市天气
+      parameters:
+      - description: 城市名
+        in: query
+        name: city
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 查询天气
+      tags:
+      - Weather API
 schemes:
 - http
 - https

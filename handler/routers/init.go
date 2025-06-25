@@ -13,5 +13,6 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 	{
 		r.InitAuxiliaryRouter(api)
 		r.InitHelloRouter(api)
+		r.InitWeatherRouter(api)
 	}
 }

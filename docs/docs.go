@@ -150,6 +150,38 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/weather": {
+            "get": {
+                "description": "查询指定城市天气",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Weather API"
+                ],
+                "summary": "查询天气",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "城市名",
+                        "name": "city",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CommonApiResponseData"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

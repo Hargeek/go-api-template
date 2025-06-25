@@ -32,13 +32,21 @@
 ├── handler                 # 处理请求的逻辑
 │   ├── controller          # 控制器层，处理请求和响应
 │   │   ├── auxiliary.go    # 示例控制器
-│   │   └── hello.go        # 示例控制器
+│   │   ├── hello.go        # 示例控制器
+│   │   └── weather.go      # 示例控制器
 │   ├── middle              # 中间件
 │   │   ├── cors.go         # 跨域中间件
 │   │   └── logger.go       # 访问日志中间件
 │   └── routers             # 路由定义
 ├── internal                # 内部包
-│   ├── service             # 服务层，处理业务逻辑
+│   ├── adapter             # 适配器层，处理外部服务调用
+│   │   ├── weather_adapter_impl.go   # 天气服务适配器实现
+│   │   └── weather_adapter.go        # 天气服务适配器接口
+│   ├── service                       # 服务层，处理业务逻辑
+│   │   ├── hello_service_impl.go     # Hello 服务实现
+│   │   ├── hello_service.go          # Hello 服务接口
+│   │   ├── weather_service_impl.go   # 天气服务实现
+│   │   └── weather_service.go        # 天气服务接口
 │   ├── static              # 静态资源
 │   │   ├── embed.go        # 静态资源嵌入
 │   │   ├── error_code      # 错误码说明文档（Markdown 格式）
@@ -57,13 +65,16 @@
 ```
 
 ## 开箱即用
+
 - [x] 中间件: 访问日志、跨域
-- [x] 使用`Go` 1.21 以上版本支持的`slog`日志库
-- [x] 集成`Swagger`文档和`Redoc`文档
-- [x] 自定义错误码，以及独立的错误码说明文档，最终会在接口文档中展示
-- [x] 通过`yaml`配置文件加载配置，支持通过配置文件启用`debug`模式，快速开启`pprof`性能监控，方便性能调优
-- [x] `Docker`部署, 支持`buildx`, 使用多阶段构建，以及在`docker build`时调用`Makefile`，注入服务版本信息等
-- [x] 提供常用的`Makefile`命令，如`make build`, `make run`, `make buildx`, `make test`, `make generate-error`等，方便开发时直接使用，更多`make`命令请执行`make`或`make help`查看
+- [x] 日志库：使用`Go` 1.21 以上版本支持的`slog`日志库
+- [x] 接口文档：集成`Swagger`文档和`Redoc`文档
+- [x] 错误定义：自定义错误码，以及独立的错误码说明文档，最终会在接口文档中展示
+- [x] 配置管理：通过`yaml`配置文件加载配置，支持通过配置文件启用`debug`模式，快速开启`pprof`性能监控，方便性能调优
+- [x] 服务部署：`Docker`部署, 支持`buildx`, 使用多阶段构建，以及在`docker build`时调用`Makefile`，注入服务版本信息等
+- [x] 项目开发：提供常用的`Makefile`命令，如`make build`, `make run`, `make buildx`, `make test`, `make generate-error`等，方便开发时直接使用，更多`make`命令请执行`make`或`make help`查看
+- [x] 分层解耦：采用 controller-service-adapter 经典分层，结构清晰，易于维护和扩展；controller、service、adapter 层均依赖接口，便于 mock、单元测试和后续实现切换
+- [x] 适配器模式：通过 adapter 层对接外部服务（如第三方 API），实现业务与外部依赖解耦
 
 ## 快速开始
 

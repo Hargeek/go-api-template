@@ -1,5 +1,5 @@
 package service
 
-type HelloRepository interface {
+type HelloService interface {
 	Hello() string
 }
