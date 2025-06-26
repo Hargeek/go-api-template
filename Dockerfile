@@ -31,6 +31,11 @@ RUN --mount=type=cache,target=/var/cache/apk --mount=type=cache,target=/etc/apk/
     && apk update --no-cache \
     && apk add --no-cache ca-certificates tzdata bash curl
 
+# Create a non-root user
+RUN addgroup -S server && adduser -S server -G server
+# Switch to the non-root user
+USER server
+
 COPY --from=build-env /bin/server /server
 
 ENV GIN_MODE=release

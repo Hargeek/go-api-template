@@ -9,10 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var Hello helloController
+var Hello *HelloController
 
-type helloController struct {
+type HelloController struct {
 	Service service.HelloService
+}
+
+func NewHelloController(s service.HelloService) *HelloController {
+	return &HelloController{Service: s}
 }
 
 // HelloController
@@ -24,6 +28,6 @@ type helloController struct {
 // @Tags        Hello API
 // @Success     200 {object} res.CommonApiResponseData
 // @Router      /api/v1/hello [get]
-func (h *helloController) HelloController(c *gin.Context) {
+func (h *HelloController) HelloController(c *gin.Context) {
 	res.ApiResponse(c, http.StatusOK, errort.NoError, h.Service.Hello(), nil)
 }

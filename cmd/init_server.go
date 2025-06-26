@@ -13,10 +13,13 @@ func init() {
 	logger.InitLogger() // 初始化日志logger
 
 	// init hello service
-	helloService := &service.HelloServiceImpl{}
-	controller.Hello.Service = helloService
+	helloService := service.NewHelloServiceImpl()
+	controller.Hello = controller.NewHelloController(helloService)
+
 	// init weather service
-	weatherAdapter := &adapter.WeatherAdapterImpl{ApiKey: "demo-key"}
-	weatherService := &service.WeatherServiceImpl{Adapter: weatherAdapter}
-	controller.Weather.Service = weatherService
+	//weatherAdapter := &adapter.WeatherAdapterImpl{"demo-key"} // 使用字面量初始化
+	//apiKey := config.AppConfig.Weather.Apikey
+	weatherAdapter := adapter.NewWeatherAdapterImpl("demo-key") // 使用构造函数初始化
+	weatherService := service.NewWeatherServiceImpl(weatherAdapter)
+	controller.Weather = controller.NewWeatherController(weatherService)
 }

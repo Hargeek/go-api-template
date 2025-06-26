@@ -11,6 +11,10 @@ type WeatherAdapterImpl struct {
 	ApiKey string
 }
 
+func NewWeatherAdapterImpl(apiKey string) *WeatherAdapterImpl {
+	return &WeatherAdapterImpl{ApiKey: apiKey}
+}
+
 func (w *WeatherAdapterImpl) GetWeather(city string) (string, error) {
 	return fmt.Sprintf("%s: 晴，25°C", city), nil
 }

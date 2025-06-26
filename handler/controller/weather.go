@@ -9,10 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var Weather weatherController
+var Weather *WeatherController
 
-type weatherController struct {
+type WeatherController struct {
 	Service service.WeatherService
+}
+
+func NewWeatherController(s service.WeatherService) *WeatherController {
+	return &WeatherController{Service: s}
 }
 
 // QueryWeather 查询天气接口
@@ -24,7 +28,7 @@ type weatherController struct {
 // @Param       city query    string true "城市名"
 // @Success     200  {object} res.CommonApiResponseData
 // @Router      /api/v1/weather [get]
-func (w *weatherController) QueryWeather(c *gin.Context) {
+func (w *WeatherController) QueryWeather(c *gin.Context) {
 	city := c.Query("city")
 	if city == "" {
 		res.ApiResponse(c, http.StatusBadRequest, errort.GeneralError, "city参数不能为空", nil)
