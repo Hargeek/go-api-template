@@ -33,6 +33,7 @@
 │   ├── controller          # 控制器层，处理请求和响应
 │   │   ├── auxiliary.go    # 示例控制器
 │   │   ├── hello.go        # 示例控制器
+│   │   ├── weather_test.go # api mock 测试
 │   │   └── weather.go      # 示例控制器
 │   ├── middle              # 中间件
 │   │   ├── cors.go         # 跨域中间件
