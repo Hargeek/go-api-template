@@ -88,6 +88,8 @@ func checkZeroValue(v reflect.Value, parentFieldName string) {
 			if field.Int() == 0 {
 				log.Panicf("common: check zero value, field key without value: %s", fullFieldName)
 			}
+		case reflect.Bool:
+			continue
 		case reflect.Struct:
 			checkZeroValue(field, fullFieldName) // 对嵌套结构体递归
 		default:
