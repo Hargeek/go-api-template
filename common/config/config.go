@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"github.com/spf13/viper"
 	"log"
+	"os"
 	"path"
 	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -27,6 +29,12 @@ func InitViper() {
 }
 
 func LoadConfig() {
+	loadConfigFile()
+	//loadEnvConfig()
+	checkZeroValue(reflect.ValueOf(AppConfig).Elem(), "")
+}
+
+func loadConfigFile() {
 	once.Do(func() {
 		viper.SetConfigName("conf")                                                             // name of config file (without extension)
 		viper.AddConfigPath("/" + configDir)                                                    // first try load config from "/config"
@@ -82,6 +90,32 @@ func checkZeroValue(v reflect.Value, parentFieldName string) {
 			}
 		case reflect.Struct:
 			checkZeroValue(field, fullFieldName) // 对嵌套结构体递归
+		default:
+			panic("unhandled default case")
 		}
+	}
+}
+
+// loadEnvConfig 从环境变量中加载配置
+func loadEnvConfig() {}
+
+// getEnvOrDefault 获取环境变量，如果不存在则返回默认值
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getEnvAsBool 获取环境变量并转换为布尔值
+func getEnvAsBool(key string, defaultValue bool) bool {
+	value := strings.ToLower(os.Getenv(key))
+	switch value {
+	case "true", "1", "yes", "on":
+		return true
+	case "false", "0", "no", "off":
+		return false
+	default:
+		return defaultValue
 	}
 }
