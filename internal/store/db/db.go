@@ -22,12 +22,12 @@ var (
 )
 
 func newDBWithConfig() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		config.AppConfig.DataBaseConfig.Host,
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		config.AppConfig.DataBaseConfig.Username,
 		config.AppConfig.DataBaseConfig.Password,
-		config.AppConfig.DataBaseConfig.Database,
+		config.AppConfig.DataBaseConfig.Host,
 		config.AppConfig.DataBaseConfig.Port,
+		config.AppConfig.DataBaseConfig.Database,
 	)
 	logLevel := gormLog.Silent
 	if config.AppConfig.DataBaseConfig.LogMode {
