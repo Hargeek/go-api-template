@@ -3,7 +3,7 @@
 commit_msg_file="$1"
 
 # 定义允许的类型
-allowed_types="feat|fix|docs|style|refactor|perf|test|chore|revert|workflow|ci|types|wip"
+allowed_types="feat|fix|docs|style|refactor|perf|test|chore|revert|workflow|ci|types|wip|model"
 
 # 正则表达式，支持 type: desc 和 type(scope): desc
 pattern="^(${allowed_types})(\\([^)]+\\))?: .+"
@@ -16,7 +16,7 @@ if ! grep -Eq "$pattern" "$commit_msg_file"; then
 	echo "  fix: 修复登录 bug"
 	echo "  feat(auth): 支持第三方登录"
 	echo "  fix(api): 修复接口返回值"
-	echo "\n<type> 必须为: feat, fix, docs, style, refactor, perf, test, chore, revert, workflow, ci, types, wip"
+	echo "\n<type> 必须为: feat, fix, docs, style, refactor, perf, test, chore, revert, workflow, ci, types, wip, model"
 	echo "<scope> 可选，冒号后需有空格，描述不能为空"
 	exit 1
 fi
