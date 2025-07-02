@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	ginautodoc "github.com/hargeek/gin-auto-redoc"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go-api-template/common/config"
 	"go-api-template/common/logger"

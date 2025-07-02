@@ -1,12 +1,11 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	errort "go-api-template/common/error"
 	res "go-api-template/common/types/response"
 	"go-api-template/internal/service"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 var Weather *WeatherController
