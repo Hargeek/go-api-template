@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	ginautodoc "github.com/hargeek/gin-auto-redoc"
+	ginautostoplight "github.com/hargeek/gin-auto-stoplight-doc"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go-api-template/common/config"
@@ -78,7 +78,7 @@ func mainEngine() *gin.Engine {
 	// swagger
 	routers.Router.RegisterSwagger(r)
 	// redoc
-	ginautodoc.Register(r)
+	ginautostoplight.Register(r)
 	// init router
 	routers.Router.InitApiRouter(r)
 

@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-gonic/gin v1.10.1
-	github.com/hargeek/gin-auto-redoc v0.0.1
+	github.com/hargeek/gin-auto-stoplight-doc v0.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.51.0
 	github.com/spf13/viper v1.20.1
