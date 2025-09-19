@@ -92,6 +92,10 @@ func checkZeroValue(v reflect.Value, parentFieldName string) {
 			continue
 		case reflect.Struct:
 			checkZeroValue(field, fullFieldName) // 对嵌套结构体递归
+		case reflect.Slice, reflect.Array: // 检查切片或数组元素是否为零值
+			if field.Len() == 0 {
+				log.Panicf("common: check zero value, field key without value: %s", fullFieldName)
+			}
 		default:
 			panic("unhandled default case")
 		}
