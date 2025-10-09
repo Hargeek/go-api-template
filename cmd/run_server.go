@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
-	"go-api-template/common/types"
 	"go-api-template/handler/middle"
 	"go-api-template/handler/routers"
 	"go-api-template/internal/store/db"
@@ -23,7 +22,6 @@ import (
 )
 
 func RunServer() {
-	logger.Info(fmt.Sprintf("GoVersion: %s, Branch: %s, Revision: %s, BuildDate: %s, BuildUser: %s", types.GoVersion, types.Branch, types.Revision, types.BuildDate, types.BuildUser))
 	// 启动gin server
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", strconv.Itoa(config.AppConfig.ServerConfig.HttpPort)),
