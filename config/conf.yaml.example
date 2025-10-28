@@ -14,3 +14,6 @@ database:
   max_life_time: 300
 logging:
   level: info
+  output:
+  - stdout
+  - http.log

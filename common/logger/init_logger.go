@@ -2,38 +2,63 @@ package logger
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"io"
 	"log/slog"
 	"os"
+
+	"github.com/spf13/viper"
 )
 
 var (
-	logger *slog.Logger
+	logger      *slog.Logger
+	fileWriters []*os.File // 保存打开的文件句柄，避免被GC回收
 )
 
 func InitLogger() {
-	// 设置日志级别
 	level := getLogLevel()
 
-	// 设置日志输出
-	output := os.Stdout
-	if viper.GetString("logging.output") == "stderr" {
-		output = os.Stderr
+	// 从配置读取输出列表
+	outputs := viper.GetStringSlice("logging.output")
+	if len(outputs) == 0 {
+		// 如果没有配置，默认使用stdout
+		outputs = []string{"stdout"}
 	}
 
-	// 创建日志处理器
-	handler := slog.NewJSONHandler(output, &slog.HandlerOptions{
+	// 构建多个输出目标
+	writers := make([]io.Writer, 0)
+	for _, output := range outputs {
+		switch output {
+		case "stdout":
+			writers = append(writers, os.Stdout)
+		case "stderr":
+			writers = append(writers, os.Stderr)
+		default:
+			// 文件输出
+			file, err := os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to open log file %s: %v", output, err))
+			}
+			fileWriters = append(fileWriters, file)
+			writers = append(writers, file)
+		}
+	}
+
+	// 使用MultiWriter合并多个输出
+	var outputWriter io.Writer = os.Stdout // 默认值
+	if len(writers) > 0 {
+		outputWriter = io.MultiWriter(writers...)
+	}
+
+	handler := slog.NewJSONHandler(outputWriter, &slog.HandlerOptions{
 		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.TimeKey {
-				// 自定义时间格式
 				a.Value = slog.StringValue(a.Value.Time().Format("2006-01-02 15:04:05.000"))
 			}
 			return a
 		},
 	})
 
-	// 创建日志记录器
 	logger = slog.New(handler)
 }
 
