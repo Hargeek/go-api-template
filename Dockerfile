@@ -1,4 +1,4 @@
-FROM registry.cn-beijing.aliyuncs.com/ssgeek/golang:1.22.6-alpine AS build-env
+FROM golang:1.25.5-alpine AS build-env
 
 ENV GOSUMDB=off \
     GO111MODULE=on \
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/var/cache/apk --mount=type=cache,target=/etc/apk/
     && apk add --no-cache git make \
     && make buildx
 
-FROM registry.cn-beijing.aliyuncs.com/ssgeek/alpine:3.14.0
+FROM alpine:3.14.0
 
 RUN ln -s /var/cache/apk /etc/apk/cache
 RUN --mount=type=cache,target=/var/cache/apk --mount=type=cache,target=/etc/apk/cache \
