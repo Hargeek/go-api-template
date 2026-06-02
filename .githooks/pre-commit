@@ -7,7 +7,7 @@ NC='\033[0m'
 
 CURRENT_SWAG_VERSION=$(swag --version 2>&1)
 
-REQUIRED_SWAG_VERSION="v1.8.4"
+REQUIRED_SWAG_VERSION="v1.16.4"
 
 if [[ "$CURRENT_SWAG_VERSION" != *"$REQUIRED_SWAG_VERSION"* ]]; then
     printf "${RED}Swagger version is not %s.${NC}\n" "$REQUIRED_SWAG_VERSION"

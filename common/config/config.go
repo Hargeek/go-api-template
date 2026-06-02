@@ -2,13 +2,14 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 const configDir = "config"

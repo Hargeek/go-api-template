@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
 	"go-api-template/common/types"
 	"go-api-template/handler/controller"
 	"go-api-template/internal/adapter"
 	"go-api-template/internal/service"
+
+	"github.com/fatih/color"
 )
 
 func init() {

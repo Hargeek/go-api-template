@@ -1,10 +1,33 @@
 basePath: /
 definitions:
+  error.ErrCode:
+    enum:
+    - 0
+    - 199999
+    - 101001
+    - 101002
+    type: integer
+    x-enum-comments:
+      GeneralError: general error
+      NoError: no error
+      ParamInvalid: invalid request parameter
+      ParamMissing: missing request parameter
+    x-enum-descriptions:
+    - no error
+    - general error
+    - invalid request parameter
+    - missing request parameter
+    x-enum-varnames:
+    - NoError
+    - GeneralError
+    - ParamInvalid
+    - ParamMissing
   types.CommonApiResponseData:
     properties:
       code:
+        allOf:
+        - $ref: '#/definitions/error.ErrCode'
         description: code
-        type: integer
       data:
         description: data
       msg:
@@ -62,8 +85,7 @@ paths:
         in: body
         name: params
         required: true
-        schema:
-          type: object
+        schema: {}
       produces:
       - application/json
       responses:

@@ -21,13 +21,13 @@ func NewHelloController(s service.HelloService) *HelloController {
 
 // HelloController
 //
-// @Accept      json
-// @Produce     json
-// @Summary     Hello World 接口
-// @Description Hello World 接口
-// @Tags        Hello API
-// @Success     200 {object} res.CommonApiResponseData
-// @Router      /api/v1/hello [get]
+//	@Accept			json
+//	@Produce		json
+//	@Summary		Hello World 接口
+//	@Description	Hello World 接口
+//	@Tags			Hello API
+//	@Success		200	{object}	res.CommonApiResponseData
+//	@Router			/api/v1/hello [get]
 func (h *HelloController) HelloController(c *gin.Context) {
 	res.ApiResponse(c, http.StatusOK, errort.NoError, h.Service.Hello(), nil)
 }

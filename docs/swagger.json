@@ -85,9 +85,7 @@
                         "name": "params",
                         "in": "body",
                         "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
+                        "schema": {}
                     }
                 ],
                 "responses": {
@@ -180,12 +178,43 @@
         }
     },
     "definitions": {
+        "error.ErrCode": {
+            "type": "integer",
+            "enum": [
+                0,
+                199999,
+                101001,
+                101002
+            ],
+            "x-enum-comments": {
+                "GeneralError": "general error",
+                "NoError": "no error",
+                "ParamInvalid": "invalid request parameter",
+                "ParamMissing": "missing request parameter"
+            },
+            "x-enum-descriptions": [
+                "no error",
+                "general error",
+                "invalid request parameter",
+                "missing request parameter"
+            ],
+            "x-enum-varnames": [
+                "NoError",
+                "GeneralError",
+                "ParamInvalid",
+                "ParamMissing"
+            ]
+        },
         "types.CommonApiResponseData": {
             "type": "object",
             "properties": {
                 "code": {
                     "description": "code",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/error.ErrCode"
+                        }
+                    ]
                 },
                 "data": {
                     "description": "data"

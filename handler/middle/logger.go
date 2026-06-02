@@ -1,10 +1,11 @@
 package middle
 
 import (
-	"github.com/gin-gonic/gin"
 	"go-api-template/common/logger"
 	"log/slog"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Logger 日志中间件，记录请求日志

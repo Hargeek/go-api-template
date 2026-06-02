@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/gin-gonic/gin"
 	errort "go-api-template/common/error"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CommonApiResponseData struct {

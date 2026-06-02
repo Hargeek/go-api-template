@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	errort "go-api-template/common/error"
 	"go-api-template/common/types"
 	res "go-api-template/common/types/response"
@@ -10,6 +8,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 var Auxiliary auxiliary
@@ -18,13 +19,13 @@ type auxiliary struct{}
 
 // GetHealthy 获取健康检查状态
 //
-// @Accept      json
-// @Produce     json
-// @Summary     健康检查接口
-// @Description 健康检查接口
-// @Tags        Auxiliary API
-// @Success     200    {object} res.CommonApiResponseData
-// @Router      /api/v1/health [get]
+//	@Accept			json
+//	@Produce		json
+//	@Summary		健康检查接口
+//	@Description	健康检查接口
+//	@Tags			Auxiliary API
+//	@Success		200	{object}	res.CommonApiResponseData
+//	@Router			/api/v1/health [get]
 func (*auxiliary) GetHealthy(ctx *gin.Context) {
 	res.ApiResponse(ctx, http.StatusOK, errort.NoError, "It is healthy!", gin.H{
 		"service_name": types.ServiceName,
@@ -40,14 +41,14 @@ func (*auxiliary) GetHealthy(ctx *gin.Context) {
 
 // GetDelayedHealthy 延迟响应测试接口
 //
-// @Accept      json
-// @Produce     json
-// @Summary     延迟响应测试接口
-// @Description 延迟响应测试接口
-// @Tags        Auxiliary API
-// @Param       delay_sec query    int true "delay time(second)"
-// @Success     200       {object} res.CommonApiResponseData
-// @Router      /api/v1/delayed-health [get]
+//	@Accept			json
+//	@Produce		json
+//	@Summary		延迟响应测试接口
+//	@Description	延迟响应测试接口
+//	@Tags			Auxiliary API
+//	@Param			delay_sec	query		int	true	"delay time(second)"
+//	@Success		200			{object}	res.CommonApiResponseData
+//	@Router			/api/v1/delayed-health [get]
 func (*auxiliary) GetDelayedHealthy(ctx *gin.Context) {
 	params := new(struct {
 		DelaySec int `form:"delay_sec" binding:"required"`
@@ -66,13 +67,13 @@ func (*auxiliary) GetDelayedHealthy(ctx *gin.Context) {
 
 // EchoAnyGet 回显请求信息(get)
 //
-// @Accept      json
-// @Produce     json
-// @Summary     回显请求信息(get)
-// @Description 回显请求信息(get)
-// @Tags        Auxiliary API
-// @Success     200 {object} types.CommonApiResponseData
-// @Router      /api/v1/echo-get [get]
+//	@Accept			json
+//	@Produce		json
+//	@Summary		回显请求信息(get)
+//	@Description	回显请求信息(get)
+//	@Tags			Auxiliary API
+//	@Success		200	{object}	types.CommonApiResponseData
+//	@Router			/api/v1/echo-get [get]
 func (*auxiliary) EchoAnyGet(ctx *gin.Context) {
 	headers := make(map[string]string)
 	for key, value := range ctx.Request.Header {
@@ -90,14 +91,14 @@ func (*auxiliary) EchoAnyGet(ctx *gin.Context) {
 
 // EchoAnyPost 回显请求信息(post)
 //
-// @Accept      json
-// @Produce     json
-// @Summary     回显请求信息(post)
-// @Description 回显请求信息(post)
-// @Tags        Auxiliary API
-// @Param       params body     interface{} true "Request Body""
-// @Success     200 {object} res.CommonApiResponseData
-// @Router      /api/v1/echo-post [post]
+//	@Accept			json
+//	@Produce		json
+//	@Summary		回显请求信息(post)
+//	@Description	回显请求信息(post)
+//	@Tags			Auxiliary API
+//	@Param			params	body		interface{}	true	"Request Body""
+//	@Success		200		{object}	res.CommonApiResponseData
+//	@Router			/api/v1/echo-post [post]
 func (*auxiliary) EchoAnyPost(ctx *gin.Context) {
 	headers := make(map[string]string)
 	for key, value := range ctx.Request.Header {

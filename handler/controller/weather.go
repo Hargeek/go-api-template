@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	errort "go-api-template/common/error"
 	res "go-api-template/common/types/response"
 	"go-api-template/internal/service"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 var Weather *WeatherController
@@ -19,14 +20,15 @@ func NewWeatherController(s service.WeatherService) *WeatherController {
 }
 
 // QueryWeather 查询天气接口
-// @Accept      json
-// @Produce     json
-// @Summary     查询天气
-// @Description 查询指定城市天气
-// @Tags        Weather API
-// @Param       city query    string true "城市名"
-// @Success     200  {object} res.CommonApiResponseData
-// @Router      /api/v1/weather [get]
+//
+//	@Accept			json
+//	@Produce		json
+//	@Summary		查询天气
+//	@Description	查询指定城市天气
+//	@Tags			Weather API
+//	@Param			city	query		string	true	"城市名"
+//	@Success		200		{object}	res.CommonApiResponseData
+//	@Router			/api/v1/weather [get]
 func (w *WeatherController) QueryWeather(c *gin.Context) {
 	city := c.Query("city")
 	if city == "" {

@@ -3,22 +3,24 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/pprof"
-	"github.com/gin-gonic/gin"
-	ginautostoplight "github.com/hargeek/gin-auto-stoplight-doc"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	"go-api-template/common/config"
-	"go-api-template/common/logger"
-	"go-api-template/handler/middle"
-	"go-api-template/handler/routers"
-	"go-api-template/internal/store/db"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
+
+	"go-api-template/common/config"
+	"go-api-template/common/logger"
+	"go-api-template/handler/middle"
+	"go-api-template/handler/routers"
+	"go-api-template/internal/store/db"
+
+	"github.com/gin-contrib/pprof"
+	"github.com/gin-gonic/gin"
+	ginautostoplight "github.com/hargeek/gin-auto-stoplight-doc"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 func RunServer() {
@@ -47,7 +49,7 @@ func RunServer() {
 		logger.Fatal("gin server shutdown error:", err)
 	}
 	logger.Info("gin server exiting...")
-	// 关闭db
+	// 关闭 db
 	if err := db.Close(); err != nil {
 		logger.Fatal("db shutdown error", err)
 	}

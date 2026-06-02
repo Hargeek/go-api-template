@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	gormLog "gorm.io/gorm/logger"
 	"log"
 	"os"
 	"sync"
 	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	gormLog "gorm.io/gorm/logger"
 )
 
 var (

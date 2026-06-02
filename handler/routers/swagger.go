@@ -1,15 +1,16 @@
 package routers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/samber/lo"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go-api-template/common/logger"
 	"go-api-template/docs"
 	swagDoc "go-api-template/docs"
 	"go-api-template/internal/static"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func (r *router) RegisterSwagger(e *gin.Engine) {

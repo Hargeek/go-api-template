@@ -112,7 +112,7 @@ go mod tidy
 - 建议安装指定版本的swag命令（不同版本的swag命令生成的接口文档格式可能不一样）
 
 ```bash
-$ go install github.com/swaggo/swag/cmd/swag@v1.8.4
+$ go install github.com/swaggo/swag/cmd/swag@v1.16.4
 ```
 
 - make请参考[make](https://www.gnu.org/software/make/)
