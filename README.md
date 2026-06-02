@@ -1,7 +1,7 @@
 # Go API Template
 
-![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.22-%23007d9c)
-![Gin Version](https://img.shields.io/badge/Gin-%3E%3D1.10-green)
+![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.25-%23007d9c)
+![Gin Version](https://img.shields.io/badge/Gin-%3E%3D1.12-green)
 [![GoDoc](https://godoc.org/github.com/hargeek/go-api-template?status.svg)](https://pkg.go.dev/github.com/hargeek/go-api-template)
 [![Contributors](https://img.shields.io/github/contributors/hargeek/go-api-template)](https://github.com/hargeek/go-api-template/graphs/contributors)
 [![License](https://img.shields.io/github/license/hargeek/go-api-template)](./LICENSE)
