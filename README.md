@@ -10,15 +10,20 @@
 
 ## 技术栈
 
-| 组件 | 库 | 说明 |
-|------|-----|------|
-| HTTP 框架 | `gin-gonic/gin` | 路由、中间件、参数绑定 |
-| 数据库 ORM | `gorm.io/gorm` + PostgreSQL 驱动 | 连接池管理、迁移 |
-| 配置管理 | `spf13/viper` | YAML 配置 + 环境变量覆盖 |
-| 日志 | 标准库 `log/slog` | JSON 结构化日志，支持多输出目标 |
-| API 文档 | `swaggo/swag` + Redoc | 自动生成 Swagger / Stoplight 文档 |
-| 性能分析 | `gin-contrib/pprof` | debug 模式下暴露 pprof 端点 |
-| 错误处理 | 自定义 `ErrCode` + stringer | 六位分层错误码，自动生成字符串映射 |
+| 组件      | 库                                       | 说明                                                             |
+|---------|-----------------------------------------|----------------------------------------------------------------|
+| HTTP 框架 | `gin-gonic/gin`                         | 路由、中间件、参数绑定                                                    |
+| 数据库 ORM | `gorm.io/gorm` + SQLite（默认）/ PostgreSQL | 连接池管理、AutoMigrate；`github.com/glebarez/sqlite` 纯 Go 驱动，零依赖开箱即用 |
+| 配置管理    | `spf13/viper`                           | YAML 配置 + 环境变量覆盖                                               |
+| 日志      | 标准库 `log/slog`                          | JSON 结构化日志，支持多输出目标                                             |
+| API 文档  | `swaggo/swag` + Redoc                   | 自动生成 Swagger / Stoplight 文档                                    |
+| 性能分析    | `gin-contrib/pprof`                     | debug 模式下暴露 pprof 端点                                           |
+| 错误处理    | 自定义 `ErrCode` + stringer                | 六位分层错误码，自动生成字符串映射                                              |
+
+## Changelog
+
+[x] 初始版本，提供基础架构和示例接口
+[x] 增加 CRUD 示例接口（`/tasks`）
 
 ## 项目结构
 
@@ -37,9 +42,9 @@
 │   ├── adapter/                # 外部服务适配器（接口隔离第三方依赖）
 │   ├── static/                 # embed 静态资源（错误码文档等）
 │   └── store/
-│       ├── db/                 # 数据库连接管理（GORM + 连接池）
-│       ├── dao/                # 数据访问对象（预留，按需添加）
-│       └── model/              # 数据模型（预留，按需添加）
+│       ├── db/                 # 数据库连接管理（GORM + 连接池 + AutoMigrate）
+│       ├── dao/                # 数据访问对象（task_dao.go 为示例）
+│       └── model/              # 数据模型（task.go 为示例）
 ├── common/                     # 公共基础库
 │   ├── config/                 # 配置结构定义与加载（含零值校验）
 │   ├── logger/                 # 日志初始化与封装
@@ -73,14 +78,19 @@
 
 所有接口挂载在 `/api/v1` 前缀下：
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/v1/health` | 健康检查，返回服务版本和构建信息 |
-| GET | `/api/v1/delayed-health?delay_sec=N` | 延迟 N 秒响应，用于超时测试 |
-| GET | `/api/v1/echo-get` | 回显请求信息（IP、Header、查询参数） |
-| POST | `/api/v1/echo-post` | 回显请求信息（IP、Header、Body） |
-| GET | `/api/v1/hello` | Hello World 示例接口 |
-| GET | `/api/v1/weather?city=城市名` | 查询天气示例接口（演示 Adapter 模式） |
+| 方法     | 路径                                   | 说明                       |
+|--------|--------------------------------------|--------------------------|
+| GET    | `/api/v1/health`                     | 健康检查，返回服务版本和构建信息         |
+| GET    | `/api/v1/delayed-health?delay_sec=N` | 延迟 N 秒响应，用于超时测试          |
+| GET    | `/api/v1/echo-get`                   | 回显请求信息（IP、Header、查询参数）   |
+| POST   | `/api/v1/echo-post`                  | 回显请求信息（IP、Header、Body）   |
+| GET    | `/api/v1/hello`                      | Hello World 示例接口         |
+| GET    | `/api/v1/weather?city=城市名`           | 查询天气示例接口（演示 Adapter 模式）  |
+| GET    | `/api/v1/tasks`                      | 获取任务列表（演示 API + DB 全栈示例） |
+| POST   | `/api/v1/tasks`                      | 创建任务                     |
+| GET    | `/api/v1/tasks/:id`                  | 获取任务详情                   |
+| PUT    | `/api/v1/tasks/:id`                  | 更新任务                     |
+| DELETE | `/api/v1/tasks/:id`                  | 删除任务（软删除）                |
 
 ## 快速开始
 
@@ -112,21 +122,30 @@ debug: false          # true 时开启 pprof 和 gin debug 日志
 env: local            # 环境标识，健康检查接口会返回此值
 server:
   http_port: 8080
-database:
-  host: localhost
-  port: 5432
-  db_name: go_api_template
-  db_user: go_api_template
-  db_password: 123456
-  log_mode: false       # true 时打印慢查询日志（阈值 3s）
-  max_idle_conn: 10
-  max_open_conn: 100
-  max_life_time: 300    # 连接最大存活时间（秒）
+
+# 数据库：sqlite / postgres 二选一，填哪个用哪个
+sqlite: # 默认，开箱即用
+  path: ./data/app.db
+  log_mode: false
+  max_idle_conn: 1    # SQLite 建议设为 1（单写模型）
+  max_open_conn: 1
+  max_life_time: 300
+# postgres:           # 切换 PostgreSQL 时取消注释，同时注释掉上方 sqlite 块
+#   host: localhost
+#   port: 5432
+#   db_name: go_api_template
+#   db_user: go_api_template
+#   db_password: 123456
+#   log_mode: false
+#   max_idle_conn: 10
+#   max_open_conn: 100
+#   max_life_time: 300
+
 logging:
   level: info           # debug / info / warn / error
   output:
-    - stdout            # 标准输出
-    - http.log          # 同时写入文件
+  - stdout            # 标准输出
+  - http.log          # 同时写入文件
 ```
 
 ### 4. 安装依赖
