@@ -20,10 +20,10 @@
 | 性能分析    | `gin-contrib/pprof`                     | debug 模式下暴露 pprof 端点                                           |
 | 错误处理    | 自定义 `ErrCode` + stringer                | 六位分层错误码，自动生成字符串映射                                              |
 
-## Changelog
+## TODO
 
-[x] 初始版本，提供基础架构和示例接口
-[x] 增加 CRUD 示例接口（`/tasks`）
+- [x] 初始版本，提供基础架构和示例接口
+- [x] 增加 CRUD 示例接口（`/tasks`）
 
 ## 项目结构
 
