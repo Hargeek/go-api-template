@@ -28,3 +28,11 @@ go.work.sum
 config/conf.yaml
 .idea
 .vscode
+data
+# log file
+*.log
+
+# SQLite file
+data/*.db
+data/*.db-shm
+data/*.db-wal

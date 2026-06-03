@@ -2,20 +2,24 @@ package cmd
 
 import (
 	"fmt"
+
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
 	"go-api-template/common/types"
 	"go-api-template/handler/controller"
 	"go-api-template/internal/adapter"
 	"go-api-template/internal/service"
+	"go-api-template/internal/store/db/migrate"
 
 	"github.com/fatih/color"
 )
 
 func init() {
 	config.LoadConfig()   // 初始化配置
-	logger.InitLogger()   // 初始化日志logger
-	showInfoDisplayLogo() // 显示logo
+	logger.InitLogger()   // 初始化日志 logger
+	showInfoDisplayLogo() // 显示 logo
+
+	migrate.AutoMigrate() // 自动迁移数据库表结构
 
 	// init hello service
 	helloService := service.NewHelloServiceImpl()
@@ -27,6 +31,10 @@ func init() {
 	weatherAdapter := adapter.NewWeatherAdapterImpl("demo-key") // 使用构造函数初始化
 	weatherService := service.NewWeatherServiceImpl(weatherAdapter)
 	controller.Weather = controller.NewWeatherController(weatherService)
+
+	// init task service
+	taskService := service.NewTaskServiceImpl()
+	controller.Task = controller.NewTaskController(taskService)
 }
 
 const systemLogo = `

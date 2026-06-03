@@ -1,8 +1,9 @@
 package config
 
 type Config struct {
-	EnvConfig      string         `mapstructure:"env"`      // 环境变量
-	ServerConfig   ServerConfig   `mapstructure:"server"`   // 服务配置
-	DataBaseConfig DataBaseConfig `mapstructure:"database"` // 数据库配置
-	LogConfig      LogConfig      `mapstructure:"logging"`  // 日志配置
+	EnvConfig    string       `mapstructure:"env"`    // 环境标识
+	ServerConfig ServerConfig `mapstructure:"server"` // 服务配置
+	SQLiteConfig SQLiteConfig `mapstructure:"sqlite"` // 数据库配置（当前使用 SQLite）
+	// PostgresConfig PostgresConfig `mapstructure:"postgres"` // 切换 PostgreSQL
+	LogConfig LogConfig `mapstructure:"logging"` // 日志配置
 }

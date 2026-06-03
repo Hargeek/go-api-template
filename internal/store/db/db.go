@@ -3,14 +3,17 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"go-api-template/common/config"
-	"go-api-template/common/logger"
 	"log"
 	"os"
 	"sync"
 	"time"
 
-	"gorm.io/driver/postgres"
+	gormSqlite "github.com/glebarez/sqlite"
+
+	"go-api-template/common/config"
+	"go-api-template/common/logger"
+
+	// "gorm.io/driver/postgres" // 切换 PostgreSQL 时取消注释
 	"gorm.io/gorm"
 	gormLog "gorm.io/gorm/logger"
 )
@@ -18,49 +21,51 @@ import (
 var (
 	GORM   *gorm.DB
 	DB     *sql.DB
-	err    error
 	dbOnce sync.Once
 )
 
 func newDBWithConfig() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.AppConfig.DataBaseConfig.Username,
-		config.AppConfig.DataBaseConfig.Password,
-		config.AppConfig.DataBaseConfig.Host,
-		config.AppConfig.DataBaseConfig.Port,
-		config.AppConfig.DataBaseConfig.Database,
-	)
+	sqlite := config.AppConfig.SQLiteConfig
+	// pg := config.AppConfig.PostgresConfig // 切换 PostgreSQL 时取消注释
+
 	logLevel := gormLog.Silent
-	if config.AppConfig.DataBaseConfig.LogMode {
+	if sqlite.LogMode {
 		logLevel = gormLog.Warn
 	}
-	newLogger := gormLog.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	gormLogger := gormLog.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		gormLog.Config{
-			SlowThreshold: 3 * time.Second, // Slow SQL threshold
-			LogLevel:      logLevel,        // Log level
-			Colorful:      false,           // Disable color
+			SlowThreshold: 3 * time.Second,
+			LogLevel:      logLevel,
+			Colorful:      false,
 		},
 	)
-	GORM, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+
+	var err error
+	GORM, err = gorm.Open(gormSqlite.Open(sqlite.Path), &gorm.Config{Logger: gormLogger})
 	if err != nil {
-		panic("connecting database failed: " + err.Error())
+		panic("connecting sqlite failed: " + err.Error())
 	}
+	logger.Info(fmt.Sprintf("database connected: driver=sqlite path=%s", sqlite.Path))
+
+	// 切换 PostgreSQL 时替换上方 sqlite 连接块为：
+	// dsn := fmt.Sprintf(
+	// 	"host=%s port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=Asia/Shanghai",
+	// 	pg.Host, pg.Port, pg.Database, pg.Username, pg.Password,
+	// )
+	// GORM, err = gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: gormLogger})
+	// if err != nil {
+	// 	panic("connecting postgres failed: " + err.Error())
+	// }
+	// logger.Info(fmt.Sprintf("database connected: driver=postgres host=%s:%d/%s", pg.Host, pg.Port, pg.Database))
+
 	sqlDB, err := GORM.DB()
 	if err != nil {
 		panic("get database connection failed: " + err.Error())
 	}
-	sqlDB.SetMaxIdleConns(config.AppConfig.DataBaseConfig.MaxIdle)
-	sqlDB.SetMaxOpenConns(config.AppConfig.DataBaseConfig.MaxOpen)
-	sqlDB.SetConnMaxLifetime(time.Duration(config.AppConfig.DataBaseConfig.MaxLife) * time.Second)
-
-	logger.Info(fmt.Sprintf("%s database connected success",
-		config.AppConfig.DataBaseConfig.Host+":"+
-			fmt.Sprintf("%d", config.AppConfig.DataBaseConfig.Port)+"/"+
-			config.AppConfig.DataBaseConfig.Database))
-
+	sqlDB.SetMaxIdleConns(sqlite.MaxIdle)
+	sqlDB.SetMaxOpenConns(sqlite.MaxOpen)
+	sqlDB.SetConnMaxLifetime(time.Duration(sqlite.MaxLife) * time.Second)
 	DB = sqlDB
 }
 
@@ -73,5 +78,8 @@ func GetGORM() *gorm.DB {
 
 func Close() error {
 	logger.Info("closing db connection...")
+	if DB == nil {
+		return nil
+	}
 	return DB.Close()
 }

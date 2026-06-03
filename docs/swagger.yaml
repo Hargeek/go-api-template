@@ -1,5 +1,25 @@
 basePath: /
 definitions:
+  controller.createTaskRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  controller.updateTaskRequest:
+    properties:
+      description:
+        type: string
+      done:
+        type: boolean
+      title:
+        type: string
+    required:
+    - title
+    type: object
   error.ErrCode:
     enum:
     - 0
@@ -126,6 +146,109 @@ paths:
       summary: Hello World 接口
       tags:
       - Hello API
+  /api/v1/tasks:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有任务，按创建时间倒序
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 获取任务列表
+      tags:
+      - Task API
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新任务
+      parameters:
+      - description: 任务信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.createTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 创建任务
+      tags:
+      - Task API
+  /api/v1/tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 软删除指定 ID 的任务
+      parameters:
+      - description: 任务 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 删除任务
+      tags:
+      - Task API
+    get:
+      consumes:
+      - application/json
+      description: 根据 ID 获取任务详情
+      parameters:
+      - description: 任务 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 获取任务详情
+      tags:
+      - Task API
+    put:
+      consumes:
+      - application/json
+      description: 更新指定 ID 的任务
+      parameters:
+      - description: 任务 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 任务信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CommonApiResponseData'
+      summary: 更新任务
+      tags:
+      - Task API
   /api/v1/weather:
     get:
       consumes:

@@ -2,16 +2,26 @@ debug: true
 env: local
 server:
   http_port: 8080
-database:
-  host: localhost
-  port: 5432
-  db_name: go_api_template
-  db_user: go_api_template
-  db_password: 123456
+
+# SQLite（默认）
+sqlite:
+  path: ./data/app.db
   log_mode: false
-  max_idle_conn: 10
-  max_open_conn: 100
+  max_idle_conn: 1      # SQLite 建议设为 1（单写模型）
+  max_open_conn: 1
   max_life_time: 300
+
+# PostgreSQL
+# postgres:
+#   host: localhost
+#   port: 5432
+#   db_name: go_api_template
+#   db_user: go_api_template
+#   db_password: 123456
+#   log_mode: false
+#   max_idle_conn: 10
+#   max_open_conn: 100
+#   max_life_time: 300
 logging:
   level: info
   output:
