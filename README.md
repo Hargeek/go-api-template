@@ -24,6 +24,9 @@
 
 - [x] 初始版本，提供基础架构和示例接口
 - [x] 增加 CRUD 示例接口（`/tasks`）
+- [x] Metrics：增加 Prometheus Metrics指标暴露
+- [ ] Log：slog + otelslog bridge，trace_id 自动注入
+- [ ] Trace：otelgin + GORM OTEL plugin，stdout/OTLP 双模式
 
 ## 项目结构
 

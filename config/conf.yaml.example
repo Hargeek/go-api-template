@@ -2,6 +2,7 @@ debug: true
 env: local
 server:
   http_port: 8080
+  metric_port: 8081   # /metrics 端点 端口
 
 # SQLite（默认）
 sqlite:

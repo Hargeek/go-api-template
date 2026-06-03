@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
+	_ "go-api-template/common/metrics" // 触发 init()，注册 build_info 指标
 	"go-api-template/handler/middle"
 	"go-api-template/handler/routers"
 	"go-api-template/internal/store/db"
@@ -20,13 +20,14 @@ import (
 	"github.com/gin-gonic/gin"
 	ginautostoplight "github.com/hargeek/gin-auto-stoplight-doc"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 )
 
 func RunServer() {
-	// 启动gin server
+	// 启动业务 HTTP server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("0.0.0.0:%s", strconv.Itoa(config.AppConfig.ServerConfig.HttpPort)),
+		Addr:    fmt.Sprintf("0.0.0.0:%d", config.AppConfig.ServerConfig.HttpPort),
 		Handler: mainEngine(),
 	}
 	go func() {
@@ -34,25 +35,39 @@ func RunServer() {
 			logger.Fatal("listen: %s\n", err)
 		}
 	}()
-	logger.Info(fmt.Sprintf("gin server is running on %s", fmt.Sprintf("0.0.0.0:%s", strconv.Itoa(config.AppConfig.ServerConfig.HttpPort))))
-	// graceful shutdown
-	// Wait for the interrupt signal, shut down all servers gracefully
+	logger.Info(fmt.Sprintf("gin server is running on 0.0.0.0:%d", config.AppConfig.ServerConfig.HttpPort))
+
+	// 启动 metrics server
+	metricsSrv := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%d", config.AppConfig.ServerConfig.MetricPort),
+		Handler: promhttp.Handler(),
+	}
+	go func() {
+		if err := metricsSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("metrics server listen error: %s\n", err)
+		}
+	}()
+	logger.Info(fmt.Sprintf("metrics server is running on 0.0.0.0:%d/metrics", config.AppConfig.ServerConfig.MetricPort))
+
+	// 优雅退出：等待中断信号
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	logger.Info("gin server shutdown...")
-	// set ctx timeout
+	logger.Info("shutting down servers...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	// shutdown gin server
+
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Fatal("gin server shutdown error:", err)
 	}
-	logger.Info("gin server exiting...")
-	// 关闭 db
+	if err := metricsSrv.Shutdown(ctx); err != nil {
+		logger.Fatal("metrics server shutdown error:", err)
+	}
 	if err := db.Close(); err != nil {
 		logger.Fatal("db shutdown error", err)
 	}
+	logger.Info("all servers exited")
 }
 
 func mainEngine() *gin.Engine {
@@ -70,8 +85,9 @@ func mainEngine() *gin.Engine {
 		pprof.Register(r) // Automatically add routers for net/http/pprof only if config enables it
 	}
 
-	r.Use(middle.Logger()) // logger middleware
-	r.Use(middle.Cors())   // cors middleware
+	r.Use(middle.Metrics()) // Prometheus 指标采集
+	r.Use(middle.Logger())  // 访问日志
+	r.Use(middle.Cors())    // 跨域
 
 	// UseRawPath = true, 保留原始路径
 	r.UseRawPath = true
