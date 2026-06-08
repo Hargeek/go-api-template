@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"go-api-template/common/config"
@@ -10,16 +11,27 @@ import (
 	"go-api-template/internal/adapter"
 	"go-api-template/internal/service"
 	"go-api-template/internal/store/db/migrate"
+	"go-api-template/pkg/telemetry"
 
 	"github.com/fatih/color"
 )
+
+// TelemetryShutdown 由 RunServer() 在优雅退出时调用，确保未导出的 Span 全部 flush
+var TelemetryShutdown func(context.Context) error
 
 func init() {
 	config.LoadConfig()   // 初始化配置
 	logger.InitLogger()   // 初始化日志 logger
 	showInfoDisplayLogo() // 显示 logo
 
-	migrate.AutoMigrate() // 自动迁移数据库表结构
+	// 初始化链路追踪，必须在 migrate 前完成，确保 GORM OTEL Plugin 注册时 TracerProvider 已就绪
+	shutdown, err := telemetry.Setup(context.Background())
+	if err != nil {
+		logger.Fatal("telemetry setup failed: ", err)
+	}
+	TelemetryShutdown = shutdown
+
+	migrate.AutoMigrate() // 自动迁移数据库表结构（触发 GORM 初始化 + OTEL Plugin 注册）
 
 	// init hello service
 	helloService := service.NewHelloServiceImpl()

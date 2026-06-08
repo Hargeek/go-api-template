@@ -63,6 +63,17 @@ var (
 		},
 		[]string{"city", "result"},
 	)
+
+	// TaskOperationsTotal Task CRUD 操作量，按操作类型和结果分维度
+	// 在 TaskServiceImpl 各方法返回前调用：
+	//   metrics.TaskOperationsTotal.WithLabelValues("create", "success").Inc()
+	TaskOperationsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "task_operations_total",
+			Help: "Total number of task CRUD operations, labeled by operation and result (success/fail).",
+		},
+		[]string{"operation", "result"},
+	)
 )
 
 func init() {

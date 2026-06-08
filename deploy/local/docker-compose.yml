@@ -1,0 +1,25 @@
+services:
+
+  # Jaeger：Trace 可视化 UI + 存储后端
+  # 访问 http://localhost:16686 查看链路
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"   # Jaeger UI
+    restart: unless-stopped
+
+  # OTEL Collector：接收应用的 OTLP 数据，转发给 Jaeger
+  # 应用将 OTEL_EXPORTER_OTLP_ENDPOINT 设置为 localhost:4317
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+    ports:
+      - "4317:4317"     # OTLP gRPC（应用发送 Trace 到此端口）
+      - "4318:4318"     # OTLP HTTP
+    depends_on:
+      - jaeger
+    restart: unless-stopped

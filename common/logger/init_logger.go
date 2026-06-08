@@ -1,12 +1,14 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -77,6 +79,21 @@ func getLogLevel() slog.Level {
 	}
 }
 
+// withTrace 从 context 中提取 otel span，将 trace_id / span_id 追加到日志参数中。
+// Trace 未启用或 span 无效时不追加任何字段。
+func withTrace(ctx context.Context, args []interface{}) []interface{} {
+	sc := trace.SpanFromContext(ctx).SpanContext()
+	if !sc.IsValid() {
+		return args
+	}
+	return append(args,
+		slog.String("trace_id", sc.TraceID().String()),
+		slog.String("span_id", sc.SpanID().String()),
+	)
+}
+
+// --- 不带 context 的函数（用于启动/关闭等无请求上下文的场景）---
+
 func Info(msg string, args ...interface{}) {
 	logger.Info(msg, args...)
 }
@@ -101,6 +118,24 @@ func Fatal(msg string, args ...interface{}) {
 func Panic(msg string, args ...interface{}) {
 	logger.Error(msg, args...)
 	panic(fmt.Sprintf(msg, args...))
+}
+
+// --- 带 context 的函数（用于请求链路中，自动附加 trace_id / span_id）---
+
+func InfoContext(ctx context.Context, msg string, args ...interface{}) {
+	logger.InfoContext(ctx, msg, withTrace(ctx, args)...)
+}
+
+func WarnContext(ctx context.Context, msg string, args ...interface{}) {
+	logger.WarnContext(ctx, msg, withTrace(ctx, args)...)
+}
+
+func ErrorContext(ctx context.Context, msg string, args ...interface{}) {
+	logger.ErrorContext(ctx, msg, withTrace(ctx, args)...)
+}
+
+func DebugContext(ctx context.Context, msg string, args ...interface{}) {
+	logger.DebugContext(ctx, msg, withTrace(ctx, args)...)
 }
 
 func BaseLogger() *slog.Logger {

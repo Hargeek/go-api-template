@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"context"
+
 	"go-api-template/internal/store/db"
 	"go-api-template/internal/store/model"
 
@@ -16,29 +18,29 @@ func NewTaskDAO() *TaskDAO {
 	return &TaskDAO{db: db.GetGORM()}
 }
 
-func (d *TaskDAO) Create(task *model.Task) error {
-	return d.db.Create(task).Error
+func (d *TaskDAO) Create(ctx context.Context, task *model.Task) error {
+	return d.db.WithContext(ctx).Create(task).Error
 }
 
-func (d *TaskDAO) List() ([]model.Task, error) {
+func (d *TaskDAO) List(ctx context.Context) ([]model.Task, error) {
 	var tasks []model.Task
-	err := d.db.Order("id desc").Find(&tasks).Error
+	err := d.db.WithContext(ctx).Order("id desc").Find(&tasks).Error
 	return tasks, err
 }
 
-func (d *TaskDAO) GetByID(id uint) (*model.Task, error) {
+func (d *TaskDAO) GetByID(ctx context.Context, id uint) (*model.Task, error) {
 	var task model.Task
-	err := d.db.First(&task, id).Error
+	err := d.db.WithContext(ctx).First(&task, id).Error
 	if err != nil {
 		return nil, err
 	}
 	return &task, nil
 }
 
-func (d *TaskDAO) Update(task *model.Task) error {
-	return d.db.Save(task).Error
+func (d *TaskDAO) Update(ctx context.Context, task *model.Task) error {
+	return d.db.WithContext(ctx).Save(task).Error
 }
 
-func (d *TaskDAO) Delete(id uint) error {
-	return d.db.Delete(&model.Task{}, id).Error
+func (d *TaskDAO) Delete(ctx context.Context, id uint) error {
+	return d.db.WithContext(ctx).Delete(&model.Task{}, id).Error
 }

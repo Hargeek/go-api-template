@@ -16,6 +16,7 @@ import (
 	// "gorm.io/driver/postgres" // 切换 PostgreSQL 时取消注释
 	"gorm.io/gorm"
 	gormLog "gorm.io/gorm/logger"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 var (
@@ -58,6 +59,12 @@ func newDBWithConfig() {
 	// 	panic("connecting postgres failed: " + err.Error())
 	// }
 	// logger.Info(fmt.Sprintf("database connected: driver=postgres host=%s:%d/%s", pg.Host, pg.Port, pg.Database))
+
+	// 注册 GORM OTEL Plugin：每条 SQL 自动生成子 Span，挂载在当前请求链路下
+	// WithoutMetrics() 避免与 Prometheus 指标重复注册
+	if err := GORM.Use(tracing.NewPlugin(tracing.WithoutMetrics())); err != nil {
+		panic("register gorm otel plugin failed: " + err.Error())
+	}
 
 	sqlDB, err := GORM.DB()
 	if err != nil {

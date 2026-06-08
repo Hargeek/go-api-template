@@ -1,9 +1,10 @@
 package middle
 
 import (
-	"go-api-template/common/logger"
 	"log/slog"
 	"time"
+
+	"go-api-template/common/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,8 +27,7 @@ func Logger() gin.HandlerFunc {
 		userAgent := c.GetHeader("User-Agent")
 
 		// 使用 slog 记录日志
-		logger.BaseLogger().Info(
-			"request log",
+		logger.InfoContext(c.Request.Context(), "request log",
 			slog.String("client_ip", clientIP),
 			slog.String("user_name", clientUserName),
 			slog.Int("status", statusCode),

@@ -68,6 +68,14 @@ local: ## 运行本地环境
 	cp config/conf-local.yaml config/conf.yaml
 	go run main.go
 
+trace-up: ## 启动本地 OTEL Collector + Jaeger（Trace 可视化）
+	docker compose -f deploy/local/docker-compose.yml up -d
+	@echo "Jaeger UI: http://localhost:16686"
+	@echo "OTLP gRPC endpoint: localhost:4317"
+
+trace-down: ## 停止本地 Trace 基础设施
+	docker compose -f deploy/local/docker-compose.yml down
+
 .PHONY: clean
 clean:
 	go clean

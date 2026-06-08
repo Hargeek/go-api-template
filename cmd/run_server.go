@@ -67,6 +67,12 @@ func RunServer() {
 	if err := db.Close(); err != nil {
 		logger.Fatal("db shutdown error", err)
 	}
+	// flush 未导出的 Span（必须在最后，确保所有 Span 都已记录完毕）
+	if TelemetryShutdown != nil {
+		if err := TelemetryShutdown(ctx); err != nil {
+			logger.Error("telemetry shutdown error", err)
+		}
+	}
 	logger.Info("all servers exited")
 }
 
@@ -85,6 +91,7 @@ func mainEngine() *gin.Engine {
 		pprof.Register(r) // Automatically add routers for net/http/pprof only if config enables it
 	}
 
+	r.Use(middle.Trace())   // 链路追踪（最先注册，确保后续中间件和 Handler 都在同一 Span 下）
 	r.Use(middle.Metrics()) // Prometheus 指标采集
 	r.Use(middle.Logger())  // 访问日志
 	r.Use(middle.Cors())    // 跨域

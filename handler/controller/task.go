@@ -30,7 +30,7 @@ func NewTaskController(s service.TaskService) *TaskController {
 //	@Success		200	{object}	res.CommonApiResponseData
 //	@Router			/api/v1/tasks [get]
 func (t *TaskController) ListTasks(c *gin.Context) {
-	tasks, err := t.Service.List()
+	tasks, err := t.Service.List(c.Request.Context())
 	if err != nil {
 		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "获取任务列表失败", nil)
 		return
@@ -54,7 +54,7 @@ func (t *TaskController) CreateTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
 	}
-	task, err := t.Service.Create(req.Title, req.Description)
+	task, err := t.Service.Create(c.Request.Context(), req.Title, req.Description)
 	if err != nil {
 		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "创建任务失败", nil)
 		return
@@ -78,7 +78,7 @@ func (t *TaskController) GetTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, "无效的任务 ID", nil)
 		return
 	}
-	task, err := t.Service.GetByID(id)
+	task, err := t.Service.GetByID(c.Request.Context(), id)
 	if err != nil {
 		res.ApiResponse(c, http.StatusNotFound, errort.GeneralError, "任务不存在", nil)
 		return
@@ -108,7 +108,7 @@ func (t *TaskController) UpdateTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
 	}
-	task, err := t.Service.Update(id, req.Title, req.Description, req.Done)
+	task, err := t.Service.Update(c.Request.Context(), id, req.Title, req.Description, req.Done)
 	if err != nil {
 		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "更新任务失败", nil)
 		return
@@ -132,7 +132,7 @@ func (t *TaskController) DeleteTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, "无效的任务 ID", nil)
 		return
 	}
-	if err := t.Service.Delete(id); err != nil {
+	if err := t.Service.Delete(c.Request.Context(), id); err != nil {
 		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "删除任务失败", nil)
 		return
 	}

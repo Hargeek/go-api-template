@@ -6,7 +6,7 @@
 [![Contributors](https://img.shields.io/github/contributors/hargeek/go-api-template)](https://github.com/hargeek/go-api-template/graphs/contributors)
 [![License](https://img.shields.io/github/license/hargeek/go-api-template)](./LICENSE)
 
-用于快速构建 Go REST API 后端工程的生产就绪模板，提供完整的分层架构、配置管理、日志、接口文档、错误码体系和 Docker 部署支持。
+用于快速构建 Go REST API 后端工程的生产就绪模板，提供完整的分层架构、配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace）和 Docker 部署支持。
 
 ## 技术栈
 
@@ -19,14 +19,16 @@
 | API 文档  | `swaggo/swag` + Redoc                   | 自动生成 Swagger / Stoplight 文档                                    |
 | 性能分析    | `gin-contrib/pprof`                     | debug 模式下暴露 pprof 端点                                           |
 | 错误处理    | 自定义 `ErrCode` + stringer                | 六位分层错误码，自动生成字符串映射                                              |
+| Metrics | `prometheus/client_golang`              | HTTP 指标自动采集，独立 `metric_port` 暴露，业务 Counter 示例                  |
+| Trace   | `go.opentelemetry.io/otel` + otelgin    | HTTP/SQL 自动 Span，context 全链路透传，stdout/OTLP 双模式，本地 Jaeger 联调    |
 
 ## TODO
 
 - [x] 初始版本，提供基础架构和示例接口
 - [x] 增加 CRUD 示例接口（`/tasks`）
 - [x] Metrics：增加 Prometheus Metrics指标暴露
+- [x] Trace：otelgin + GORM OTEL plugin，stdout/OTLP 双模式，context 全链路透传
 - [ ] Log：slog + otelslog bridge，trace_id 自动注入
-- [ ] Trace：otelgin + GORM OTEL plugin，stdout/OTLP 双模式
 
 ## 项目结构
 
@@ -50,13 +52,20 @@
 │       └── model/              # 数据模型（task.go 为示例）
 ├── common/                     # 公共基础库
 │   ├── config/                 # 配置结构定义与加载（含零值校验）
-│   ├── logger/                 # 日志初始化与封装
+│   ├── logger/                 # 日志初始化与封装（含 InfoContext，自动附加 trace_id）
+│   ├── metrics/                # Prometheus 指标注册（HTTP 指标、build_info、业务 Counter 示例）
 │   ├── error/                  # 错误码定义（go generate 生成字符串映射）
 │   └── types/                  # 通用类型、统一响应结构、构建信息变量
+├── pkg/
+│   ├── telemetry/              # OpenTelemetry 生命周期管理（TracerProvider、resource）
+│   └── utils/                  # 工具函数（预留扩展）
 ├── config/
 │   ├── conf.yaml               # 运行时配置文件（git ignored）
 │   └── conf.yaml.example       # 配置模板
-├── pkg/utils/                  # 工具函数（预留扩展）
+├── deploy/
+│   └── local/                  # 本地联调基础设施
+│       ├── docker-compose.yml  # OTEL Collector + Jaeger
+│       └── otel-collector-config.yaml
 ├── scripts/                    # 运维/辅助脚本（预留扩展）
 ├── docs/                       # swag 自动生成的 Swagger 文档
 ├── Makefile                    # 常用开发命令
@@ -76,6 +85,9 @@
 - **构建信息注入**：Makefile 通过 `-ldflags` 将 Branch/Revision/BuildDate/BuildUser 注入二进制，健康检查接口可直接返回
 - **Docker 部署**：多阶段构建，最终镜像基于 Alpine，以非 root 用户运行，支持 `buildx` 交叉编译
 - **热重载开发**：集成 `air`，代码改动后自动重启
+- **Metrics**：Prometheus 独立 `metric_port` 暴露 `/metrics`，HTTP 请求量/延迟自动采集，`app_build_info` Gauge 携带版本元数据
+- **Trace**：OpenTelemetry 全链路追踪，HTTP 根 Span + SQL 子 Span 自动生成，context 透传确保链路完整；访问日志自动附加
+  `trace_id`；本地 `make trace-up` 一键启动 Jaeger
 
 ## API 端点
 
@@ -125,6 +137,7 @@ debug: false          # true 时开启 pprof 和 gin debug 日志
 env: local            # 环境标识，健康检查接口会返回此值
 server:
   http_port: 8080
+  metric_port: 8081   # Prometheus 抓取端口，/metrics 端点
 
 # 数据库：sqlite / postgres 二选一，填哪个用哪个
 sqlite: # 默认，开箱即用
@@ -187,6 +200,8 @@ make vet               # go vet 静态检查
 make fieldalignment    # 检查并修复结构体内存对齐
 make install-hook      # 安装 git hooks（.githooks/）
 make clean             # 清理编译产物
+make trace-up          # 启动本地 OTEL Collector + Jaeger（http://localhost:16686）
+make trace-down        # 停止本地 Trace 基础设施
 ```
 
 ## Docker 部署
@@ -198,6 +213,7 @@ docker build -t go-api-template:latest .
 # 运行容器（挂载配置文件）
 docker run -d \
   -p 8080:8080 \
+  -p 8081:8081 \
   -v /path/to/conf.yaml:/config/conf.yaml \
   go-api-template:latest
 ```
@@ -232,6 +248,13 @@ make generate-error
 ```
 
 错误码编码规则：六位数字，前三位为模块号，后三位为错误序号（如 `101001` = 系统模块第 1 个参数错误）。
+
+## 文档
+
+| 文档                                     | 说明                                  |
+|----------------------------------------|-------------------------------------|
+| [docs/metric说明.md](./docs/metric说明.md) | Prometheus 指标采集、添加业务指标、类型速查         |
+| [docs/trace说明.md](./docs/trace说明.md)   | 链路追踪、环境变量配置、本地 Jaeger 联调、context 透传 |
 
 ## License
 
