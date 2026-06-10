@@ -30,6 +30,8 @@ func initTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	)
 
 	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
+		// passthrough:///host:port 格式，例如：
+		//   OTEL_EXPORTER_OTLP_ENDPOINT=passthrough:///10.0.0.1:4317
 		exporter, err = otlptracegrpc.New(ctx,
 			otlptracegrpc.WithEndpoint(endpoint),
 			otlptracegrpc.WithInsecure(),
