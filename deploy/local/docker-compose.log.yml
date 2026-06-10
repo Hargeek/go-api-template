@@ -1,0 +1,42 @@
+services:
+
+  # Loki：日志存储后端
+  # 访问 http://localhost:3100/ready 检查就绪状态
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yaml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+
+  # OTEL Collector：接收应用的 OTLP 数据，转发给 Loki
+  # 应用将 OTEL_EXPORTER_OTLP_ENDPOINT 设置为 localhost:4317
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.log.yaml:/etc/otelcol/config.yaml
+    ports:
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  # Grafana：日志可视化，预配置 Loki 数据源
+  # 访问 http://localhost:3000（无需登录）
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+    restart: unless-stopped

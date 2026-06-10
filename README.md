@@ -6,7 +6,7 @@
 [![Contributors](https://img.shields.io/github/contributors/hargeek/go-api-template)](https://github.com/hargeek/go-api-template/graphs/contributors)
 [![License](https://img.shields.io/github/license/hargeek/go-api-template)](./LICENSE)
 
-用于快速构建 Go REST API 后端工程的生产就绪模板，提供完整的分层架构、配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace）和 Docker 部署支持。
+用于快速构建 Go REST API 后端工程的生产就绪模板，提供完整的分层架构、配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace/Log）和 Docker 部署支持。
 
 ## 技术栈
 
@@ -21,6 +21,7 @@
 | 错误处理    | 自定义 `ErrCode` + stringer                | 六位分层错误码，自动生成字符串映射                                              |
 | Metrics | `prometheus/client_golang`              | HTTP 指标自动采集，独立 `metric_port` 暴露，业务 Counter 示例                  |
 | Trace   | `go.opentelemetry.io/otel` + otelgin    | HTTP/SQL 自动 Span，context 全链路透传，stdout/OTLP 双模式，本地 Jaeger 联调    |
+| Log     | `log/slog` + `otelslog bridge`          | JSON 结构化日志，OTEL bridge 按需挂载，trace_id 自动关联，本地 Loki+Grafana 联调 |
 
 ## TODO
 
@@ -28,7 +29,7 @@
 - [x] 增加 CRUD 示例接口（`/tasks`）
 - [x] Metrics：增加 Prometheus Metrics指标暴露
 - [x] Trace：otelgin + GORM OTEL plugin，stdout/OTLP 双模式，context 全链路透传
-- [ ] Log：slog + otelslog bridge，trace_id 自动注入
+- [x] Log：slog + otelslog bridge，trace_id 自动关联，本地 Loki+Grafana 联调
 
 ## 项目结构
 
@@ -200,8 +201,12 @@ make vet               # go vet 静态检查
 make fieldalignment    # 检查并修复结构体内存对齐
 make install-hook      # 安装 git hooks（.githooks/）
 make clean             # 清理编译产物
-make trace-up          # 启动本地 OTEL Collector + Jaeger（http://localhost:16686）
-make trace-down        # 停止本地 Trace 基础设施
+make trace-up          # 启动本地 Trace 环境：Collector + Jaeger（http://localhost:16686）
+make trace-down        # 停止本地 Trace 环境
+make log-up            # 启动本地 Log 环境：Collector + Loki + Grafana（http://localhost:3000）
+make log-down          # 停止本地 Log 环境
+make obs-up            # 启动完整可观测性环境：Trace + Log（Jaeger + Grafana）
+make obs-down          # 停止完整可观测性环境
 ```
 
 ## Docker 部署
@@ -253,8 +258,9 @@ make generate-error
 
 | 文档                                     | 说明                                  |
 |----------------------------------------|-------------------------------------|
-| [docs/metric说明.md](./docs/metric说明.md) | Prometheus 指标采集、添加业务指标、类型速查         |
-| [docs/trace说明.md](./docs/trace说明.md)   | 链路追踪、环境变量配置、本地 Jaeger 联调、context 透传 |
+| [docs/metric说明.md](./docs/metric说明.md) | Prometheus 指标采集、添加业务指标、类型速查              |
+| [docs/trace说明.md](./docs/trace说明.md)   | 链路追踪、环境变量配置、本地 Jaeger 联调、context 透传    |
+| [docs/log说明.md](./docs/log说明.md)       | 结构化日志、OTEL bridge、本地 Loki+Grafana 联调、写入规范 |
 
 ## License
 

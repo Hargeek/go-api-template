@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
@@ -20,16 +21,18 @@ import (
 var TelemetryShutdown func(context.Context) error
 
 func init() {
-	config.LoadConfig()   // 初始化配置
-	logger.InitLogger()   // 初始化日志 logger
-	showInfoDisplayLogo() // 显示 logo
+	config.LoadConfig() // 初始化配置
 
-	// 初始化链路追踪，必须在 migrate 前完成，确保 GORM OTEL Plugin 注册时 TracerProvider 已就绪
+	// 注册 TraceProvider/LoggerProvider
 	shutdown, err := telemetry.Setup(context.Background())
 	if err != nil {
-		logger.Fatal("telemetry setup failed: ", err)
+		_, _ = fmt.Fprintf(os.Stderr, "telemetry setup failed: %v\n", err)
+		os.Exit(1)
 	}
 	TelemetryShutdown = shutdown
+
+	logger.InitLogger()   // 初始化 logger，挂载 otelslog bridge
+	showInfoDisplayLogo() // 显示 logo
 
 	migrate.AutoMigrate() // 自动迁移数据库表结构（触发 GORM 初始化 + OTEL Plugin 注册）
 

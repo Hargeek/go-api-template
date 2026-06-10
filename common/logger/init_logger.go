@@ -7,7 +7,10 @@ import (
 	"log/slog"
 	"os"
 
+	"go-api-template/common/types"
+
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -17,6 +20,12 @@ var (
 )
 
 func InitLogger() {
+	// 关闭上一次初始化打开的文件句柄（支持多次调用）
+	for _, f := range fileWriters {
+		_ = f.Close()
+	}
+	fileWriters = nil
+
 	level := getLogLevel()
 
 	// 从配置读取输出列表
@@ -27,7 +36,7 @@ func InitLogger() {
 	}
 
 	// 构建多个输出目标
-	writers := make([]io.Writer, 0)
+	writers := make([]io.Writer, 0, len(outputs))
 	for _, output := range outputs {
 		switch output {
 		case "stdout":
@@ -51,7 +60,7 @@ func InitLogger() {
 		outputWriter = io.MultiWriter(writers...)
 	}
 
-	handler := slog.NewJSONHandler(outputWriter, &slog.HandlerOptions{
+	localHandler := slog.NewJSONHandler(outputWriter, &slog.HandlerOptions{
 		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.TimeKey {
@@ -61,7 +70,18 @@ func InitLogger() {
 		},
 	})
 
-	logger = slog.New(handler)
+	handlers := []slog.Handler{localHandler}
+
+	// OTEL_EXPORTER_ENABLED_LOGS=true 时追加 otelslog bridge handler
+	// 未配置 OTEL_EXPORTER_OTLP_ENDPOINT 时 LoggerProvider 为 noop，handler 不产生额外输出
+	// telemetry.Setup() 必须在 InitLogger() 之前调用，确保 LoggerProvider 已注册
+	if os.Getenv("OTEL_EXPORTER_ENABLED") == "true" &&
+		os.Getenv("OTEL_EXPORTER_ENABLED_LOGS") == "true" {
+		handlers = append(handlers, otelslog.NewHandler(types.ServiceName))
+	}
+
+	logger = slog.New(newMultiHandler(handlers...))
+	slog.SetDefault(logger)
 }
 
 func getLogLevel() slog.Level {
@@ -79,8 +99,9 @@ func getLogLevel() slog.Level {
 	}
 }
 
-// withTrace 从 context 中提取 otel span，将 trace_id / span_id 追加到日志参数中。
-// Trace 未启用或 span 无效时不追加任何字段。
+// withTrace 从 context 中提取 otel span，将 trace_id / span_id 追加到日志参数中
+// 作为本地 JSON 输出的 fallback：无论 OTEL Log 是否启用，本地日志始终携带 trace_id
+// otelslog bridge 启用时，OTEL 侧会从 context 自动关联，两者互不干扰
 func withTrace(ctx context.Context, args []interface{}) []interface{} {
 	sc := trace.SpanFromContext(ctx).SpanContext()
 	if !sc.IsValid() {
@@ -90,6 +111,54 @@ func withTrace(ctx context.Context, args []interface{}) []interface{} {
 		slog.String("trace_id", sc.TraceID().String()),
 		slog.String("span_id", sc.SpanID().String()),
 	)
+}
+
+// multiHandler 将日志记录分发给多个 slog.Handler
+type multiHandler struct {
+	handlers []slog.Handler
+}
+
+func newMultiHandler(handlers ...slog.Handler) slog.Handler {
+	if len(handlers) == 1 {
+		return handlers[0]
+	}
+	return &multiHandler{handlers: handlers}
+}
+
+func (m *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	for _, h := range m.handlers {
+		if h.Enabled(ctx, level) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *multiHandler) Handle(ctx context.Context, r slog.Record) error {
+	for _, h := range m.handlers {
+		if h.Enabled(ctx, r.Level) {
+			if err := h.Handle(ctx, r.Clone()); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (m *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	handlers := make([]slog.Handler, len(m.handlers))
+	for i, h := range m.handlers {
+		handlers[i] = h.WithAttrs(attrs)
+	}
+	return &multiHandler{handlers: handlers}
+}
+
+func (m *multiHandler) WithGroup(name string) slog.Handler {
+	handlers := make([]slog.Handler, len(m.handlers))
+	for i, h := range m.handlers {
+		handlers[i] = h.WithGroup(name)
+	}
+	return &multiHandler{handlers: handlers}
 }
 
 // --- 不带 context 的函数（用于启动/关闭等无请求上下文的场景）---

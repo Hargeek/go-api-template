@@ -70,12 +70,12 @@ make trace-down  # 停止
 新增 DAO 方法时必须接受并传递 `context.Context`：
 
 ```go
-// ✅ 正确：透传 context，SQL Span 会挂在当前请求链路下
+// 正确：透传 context，SQL Span 会挂在当前请求链路下
 func (d *TaskDAO) List(ctx context.Context) ([]model.Task, error) {
 return d.db.WithContext(ctx).Find(&tasks).Error
 }
 
-// ❌ 错误：不传 context，SQL Span 变成孤立 Trace
+// 错误：不传 context，SQL Span 变成孤立 Trace
 func (d *TaskDAO) List() ([]model.Task, error) {
 return d.db.Find(&tasks).Error
 }
@@ -101,6 +101,8 @@ Trace 启用后，访问日志会自动附加 `trace_id` 和 `span_id`：
 ```
 
 这通过 `logger.InfoContext(c.Request.Context(), ...)` 实现，`common/logger` 包内部自动从 context 提取。
+
+启动完整可观测性环境（`make obs-up`）并同时开启 Log 导出后，Grafana Loki 中的日志行会出现 **Jaeger** 跳转按钮，点击直接定位到对应链路。详见 [log说明.md](log说明.md)。
 
 ---
 

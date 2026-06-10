@@ -68,13 +68,30 @@ local: ## 运行本地环境
 	cp config/conf-local.yaml config/conf.yaml
 	go run main.go
 
-trace-up: ## 启动本地 OTEL Collector + Jaeger（Trace 可视化）
-	docker compose -f deploy/local/docker-compose.yml up -d
-	@echo "Jaeger UI: http://localhost:16686"
+trace-up: ## 启动本地 Trace 环境：OTEL Collector + Jaeger
+	docker compose -f deploy/local/docker-compose.trace.yml up -d
+	@echo "Jaeger UI:          http://localhost:16686"
 	@echo "OTLP gRPC endpoint: localhost:4317"
 
-trace-down: ## 停止本地 Trace 基础设施
-	docker compose -f deploy/local/docker-compose.yml down
+trace-down: ## 停止本地 Trace 环境
+	docker compose -f deploy/local/docker-compose.trace.yml down
+
+log-up: ## 启动本地 Log 环境：OTEL Collector + Loki + Grafana
+	docker compose -f deploy/local/docker-compose.log.yml up -d
+	@echo "Grafana UI:         http://localhost:3000"
+	@echo "OTLP gRPC endpoint: localhost:4317"
+
+log-down: ## 停止本地 Log 环境
+	docker compose -f deploy/local/docker-compose.log.yml down
+
+obs-up: ## 启动本地完整可观测性环境：Collector + Jaeger + Loki + Grafana
+	docker compose -f deploy/local/docker-compose.obs.yml up -d
+	@echo "Jaeger UI:          http://localhost:16686"
+	@echo "Grafana UI:         http://localhost:3000"
+	@echo "OTLP gRPC endpoint: localhost:4317"
+
+obs-down: ## 停止本地完整可观测性环境
+	docker compose -f deploy/local/docker-compose.obs.yml down
 
 .PHONY: clean
 clean:

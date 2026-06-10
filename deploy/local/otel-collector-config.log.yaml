@@ -1,0 +1,35 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  # 将 trace_id 属性追加到 log body，使 Grafana regex 可以提取并跳转 Jaeger。
+  # 仅对含 trace_id 属性的日志生效，不影响无 trace context 的日志（如启动日志）。
+  # 本地 slog 输出格式不受影响（transform 发生在 Collector，不在应用侧）。
+  transform/logs:
+    log_statements:
+      - context: log
+        statements:
+          - set(body, Concat([body, " trace_id=", attributes["trace_id"]], "")) where attributes["trace_id"] != nil
+
+exporters:
+  # Log → Loki（OTLP HTTP，Loki 3.x 原生支持）
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch, transform/logs]
+      exporters: [otlphttp/loki]
