@@ -3,7 +3,7 @@
 // 使用方式：
 //   - HTTP 框架层指标由 handler/middle/metrics.go 中间件自动采集，无需手动调用
 //   - 业务指标在 service 层关键路径手动调用，例如：
-//       metrics.WeatherQueryTotal.WithLabelValues(city, "success").Inc()
+//     metrics.WeatherQueryTotal.WithLabelValues(city, "success").Inc()
 //
 // 新增业务指标步骤：
 //  1. 在本文件 var 块中用 promauto.NewXxxVec 声明并注册
