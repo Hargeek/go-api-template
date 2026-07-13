@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	logger      *slog.Logger
+	// 默认指向 slog.Default()，保证 InitLogger 调用前（如单测场景）也不会 nil panic
+	logger      = slog.Default()
 	fileWriters []*os.File // 保存打开的文件句柄，避免被GC回收
 )
 

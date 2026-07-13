@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+
 	errort "go-api-template/common/error"
 	res "go-api-template/common/types/response"
 	"go-api-template/internal/service"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,9 +31,9 @@ func NewTaskController(s service.TaskService) *TaskController {
 //	@Success		200	{object}	res.CommonApiResponseData
 //	@Router			/api/v1/tasks [get]
 func (t *TaskController) ListTasks(c *gin.Context) {
-	tasks, err := t.Service.List(c.Request.Context())
-	if err != nil {
-		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "获取任务列表失败", nil)
+	tasks, apiErr := t.Service.List(c.Request.Context())
+	if apiErr != nil {
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "ok", tasks)
@@ -54,9 +55,9 @@ func (t *TaskController) CreateTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
 	}
-	task, err := t.Service.Create(c.Request.Context(), req.Title, req.Description)
-	if err != nil {
-		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "创建任务失败", nil)
+	task, apiErr := t.Service.Create(c.Request.Context(), req.Title, req.Description)
+	if apiErr != nil {
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "创建成功", task)
@@ -78,9 +79,13 @@ func (t *TaskController) GetTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, "无效的任务 ID", nil)
 		return
 	}
-	task, err := t.Service.GetByID(c.Request.Context(), id)
-	if err != nil {
-		res.ApiResponse(c, http.StatusNotFound, errort.GeneralError, "任务不存在", nil)
+	task, apiErr := t.Service.GetByID(c.Request.Context(), id)
+	if apiErr != nil {
+		if apiErr.Code == errort.TaskNotFound {
+			res.ApiResponse(c, http.StatusNotFound, apiErr.Code, apiErr.Msg, nil)
+			return
+		}
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "ok", task)
@@ -108,9 +113,13 @@ func (t *TaskController) UpdateTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
 	}
-	task, err := t.Service.Update(c.Request.Context(), id, req.Title, req.Description, req.Done)
-	if err != nil {
-		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "更新任务失败", nil)
+	task, apiErr := t.Service.Update(c.Request.Context(), id, req.Title, req.Description, req.Done)
+	if apiErr != nil {
+		if apiErr.Code == errort.TaskNotFound {
+			res.ApiResponse(c, http.StatusNotFound, apiErr.Code, apiErr.Msg, nil)
+			return
+		}
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "更新成功", task)
@@ -132,8 +141,8 @@ func (t *TaskController) DeleteTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, "无效的任务 ID", nil)
 		return
 	}
-	if err := t.Service.Delete(c.Request.Context(), id); err != nil {
-		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "删除任务失败", nil)
+	if apiErr := t.Service.Delete(c.Request.Context(), id); apiErr != nil {
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "删除成功", nil)

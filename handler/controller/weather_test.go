@@ -1,13 +1,18 @@
 package controller
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	errort "go-api-template/common/error"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 // 使用 testify/mock 定义 mock
@@ -17,9 +22,13 @@ type MockWeatherService struct {
 	mock.Mock
 }
 
-func (m *MockWeatherService) QueryWeather(city string) (string, error) {
-	args := m.Called(city)
-	return args.String(0), args.Error(1)
+func (m *MockWeatherService) QueryWeather(ctx context.Context, city string) (string, *errort.ApiError) {
+	args := m.Called(ctx, city)
+	var apiErr *errort.ApiError
+	if e := args.Get(1); e != nil {
+		apiErr = e.(*errort.ApiError)
+	}
+	return args.String(0), apiErr
 }
 
 func TestWeatherController_QueryWeather(t *testing.T) {
@@ -31,7 +40,7 @@ func TestWeatherController_QueryWeather(t *testing.T) {
 	router.GET("/weather", weatherController.QueryWeather)
 
 	// 1. 正常返回
-	mockService.On("QueryWeather", "Beijing").Return("Beijing: 晴，25°C", nil)
+	mockService.On("QueryWeather", mock.Anything, "Beijing").Return("Beijing: 晴，25°C", nil)
 	req1, _ := http.NewRequest("GET", "/weather?city=Beijing", nil)
 	w1 := httptest.NewRecorder()
 	router.ServeHTTP(w1, req1)
@@ -45,7 +54,8 @@ func TestWeatherController_QueryWeather(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w2.Code)
 
 	// 3. 查询失败
-	mockService.On("QueryWeather", "Unknown").Return("", errors.New("not found"))
+	mockService.On("QueryWeather", mock.Anything, "Unknown").
+		Return("", errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgWeatherQueryFailed, errors.New("not found"))))
 	req3, _ := http.NewRequest("GET", "/weather?city=Unknown", nil)
 	w3 := httptest.NewRecorder()
 	router.ServeHTTP(w3, req3)

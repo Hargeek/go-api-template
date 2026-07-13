@@ -12,12 +12,14 @@ func _() {
 	_ = x[GeneralError-199999]
 	_ = x[ParamInvalid-101001]
 	_ = x[ParamMissing-101002]
+	_ = x[TaskNotFound-102001]
 }
 
 const (
 	_ErrCode_name_0 = "no error"
 	_ErrCode_name_1 = "invalid request parametermissing request parameter"
-	_ErrCode_name_2 = "general error"
+	_ErrCode_name_2 = "task not found"
+	_ErrCode_name_3 = "general error"
 )
 
 var (
@@ -31,8 +33,10 @@ func (i ErrCode) String() string {
 	case 101001 <= i && i <= 101002:
 		i -= 101001
 		return _ErrCode_name_1[_ErrCode_index_1[i]:_ErrCode_index_1[i+1]]
-	case i == 199999:
+	case i == 102001:
 		return _ErrCode_name_2
+	case i == 199999:
+		return _ErrCode_name_3
 	default:
 		return "ErrCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}

@@ -32,14 +32,12 @@ func NewWeatherController(s service.WeatherService) *WeatherController {
 func (w *WeatherController) QueryWeather(c *gin.Context) {
 	city := c.Query("city")
 	if city == "" {
-		res.ApiResponse(c, http.StatusBadRequest, errort.GeneralError, "city参数不能为空", nil)
+		res.ApiResponse(c, http.StatusBadRequest, errort.ParamMissing, "city参数不能为空", nil)
 		return
 	}
-	result, err := w.Service.QueryWeather(city)
-	if err != nil {
-		res.ApiResponse(c, http.StatusInternalServerError, errort.GeneralError, "查询天气失败", gin.H{
-			"error": err.Error(),
-		})
+	result, apiErr := w.Service.QueryWeather(c.Request.Context(), city)
+	if apiErr != nil {
+		res.ApiResponse(c, http.StatusInternalServerError, apiErr.Code, apiErr.Msg, nil)
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "查询天气成功", gin.H{

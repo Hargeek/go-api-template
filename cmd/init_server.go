@@ -11,6 +11,8 @@ import (
 	"go-api-template/handler/controller"
 	"go-api-template/internal/adapter"
 	"go-api-template/internal/service"
+	"go-api-template/internal/store/dao"
+	"go-api-template/internal/store/db"
 	"go-api-template/internal/store/db/migrate"
 	"go-api-template/pkg/telemetry"
 
@@ -36,6 +38,9 @@ func init() {
 
 	migrate.AutoMigrate() // 自动迁移数据库表结构（触发 GORM 初始化 + OTEL Plugin 注册）
 
+	// init dao
+	d := dao.NewDao(db.GetGORM())
+
 	// init hello service
 	helloService := service.NewHelloServiceImpl()
 	controller.Hello = controller.NewHelloController(helloService)
@@ -48,7 +53,7 @@ func init() {
 	controller.Weather = controller.NewWeatherController(weatherService)
 
 	// init task service
-	taskService := service.NewTaskServiceImpl()
+	taskService := service.NewTaskServiceImpl(d)
 	controller.Task = controller.NewTaskController(taskService)
 }
 

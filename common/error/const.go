@@ -26,3 +26,8 @@ const (
 	ParamInvalid ErrCode = 101001 // invalid request parameter
 	ParamMissing ErrCode = 101002 // missing request parameter
 )
+
+// 102: 任务模块
+const (
+	TaskNotFound ErrCode = 102001 // task not found
+)
