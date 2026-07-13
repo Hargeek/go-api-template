@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	errort "go-api-template/common/error"
+	typeT "go-api-template/common/types"
 	res "go-api-template/common/types/response"
 	"go-api-template/internal/service"
 
@@ -46,11 +47,11 @@ func (t *TaskController) ListTasks(c *gin.Context) {
 //	@Summary		创建任务
 //	@Description	创建一个新任务
 //	@Tags			Task API
-//	@Param			body	body		createTaskRequest	true	"任务信息"
+//	@Param			body	body		typeT.CreateTaskRequest	true	"任务信息"
 //	@Success		200		{object}	res.CommonApiResponseData
 //	@Router			/api/v1/tasks [post]
 func (t *TaskController) CreateTask(c *gin.Context) {
-	var req createTaskRequest
+	var req typeT.CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
@@ -98,8 +99,8 @@ func (t *TaskController) GetTask(c *gin.Context) {
 //	@Summary		更新任务
 //	@Description	更新指定 ID 的任务
 //	@Tags			Task API
-//	@Param			id		path		int					true	"任务 ID"
-//	@Param			body	body		updateTaskRequest	true	"任务信息"
+//	@Param			id		path		int						true	"任务 ID"
+//	@Param			body	body		typeT.UpdateTaskRequest	true	"任务信息"
 //	@Success		200		{object}	res.CommonApiResponseData
 //	@Router			/api/v1/tasks/{id} [put]
 func (t *TaskController) UpdateTask(c *gin.Context) {
@@ -108,7 +109,7 @@ func (t *TaskController) UpdateTask(c *gin.Context) {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, "无效的任务 ID", nil)
 		return
 	}
-	var req updateTaskRequest
+	var req typeT.UpdateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		res.ApiResponse(c, http.StatusBadRequest, errort.ParamInvalid, err.Error(), nil)
 		return
@@ -146,19 +147,6 @@ func (t *TaskController) DeleteTask(c *gin.Context) {
 		return
 	}
 	res.ApiResponse(c, http.StatusOK, errort.NoError, "删除成功", nil)
-}
-
-// --- 请求体结构 ---
-
-type createTaskRequest struct {
-	Title       string `json:"title"       binding:"required"`
-	Description string `json:"description"`
-}
-
-type updateTaskRequest struct {
-	Title       string `json:"title"       binding:"required"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
 }
 
 // --- 工具函数 ---

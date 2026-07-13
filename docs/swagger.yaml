@@ -1,47 +1,31 @@
 basePath: /
 definitions:
-  controller.createTaskRequest:
-    properties:
-      description:
-        type: string
-      title:
-        type: string
-    required:
-    - title
-    type: object
-  controller.updateTaskRequest:
-    properties:
-      description:
-        type: string
-      done:
-        type: boolean
-      title:
-        type: string
-    required:
-    - title
-    type: object
   error.ErrCode:
     enum:
     - 0
     - 199999
     - 101001
     - 101002
+    - 102001
     type: integer
     x-enum-comments:
       GeneralError: general error
       NoError: no error
       ParamInvalid: invalid request parameter
       ParamMissing: missing request parameter
+      TaskNotFound: task not found
     x-enum-descriptions:
     - no error
     - general error
     - invalid request parameter
     - missing request parameter
+    - task not found
     x-enum-varnames:
     - NoError
     - GeneralError
     - ParamInvalid
     - ParamMissing
+    - TaskNotFound
   types.CommonApiResponseData:
     properties:
       code:
@@ -53,6 +37,26 @@ definitions:
       msg:
         description: message
         type: string
+    type: object
+  types.CreateTaskRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  types.UpdateTaskRequest:
+    properties:
+      description:
+        type: string
+      done:
+        type: boolean
+      title:
+        type: string
+    required:
+    - title
     type: object
 info:
   contact: {}
@@ -171,7 +175,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.createTaskRequest'
+          $ref: '#/definitions/types.CreateTaskRequest'
       produces:
       - application/json
       responses:
@@ -238,7 +242,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.updateTaskRequest'
+          $ref: '#/definitions/types.UpdateTaskRequest'
       produces:
       - application/json
       responses:

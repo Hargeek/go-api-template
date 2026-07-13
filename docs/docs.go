@@ -189,7 +189,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.createTaskRequest"
+                            "$ref": "#/definitions/types.CreateTaskRequest"
                         }
                     }
                 ],
@@ -260,7 +260,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.updateTaskRequest"
+                            "$ref": "#/definitions/types.UpdateTaskRequest"
                         }
                     }
                 ],
@@ -338,62 +338,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.createTaskRequest": {
-            "type": "object",
-            "required": [
-                "title"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.updateTaskRequest": {
-            "type": "object",
-            "required": [
-                "title"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "done": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "error.ErrCode": {
             "type": "integer",
             "enum": [
                 0,
                 199999,
                 101001,
-                101002
+                101002,
+                102001
             ],
             "x-enum-comments": {
                 "GeneralError": "general error",
                 "NoError": "no error",
                 "ParamInvalid": "invalid request parameter",
-                "ParamMissing": "missing request parameter"
+                "ParamMissing": "missing request parameter",
+                "TaskNotFound": "task not found"
             },
             "x-enum-descriptions": [
                 "no error",
                 "general error",
                 "invalid request parameter",
-                "missing request parameter"
+                "missing request parameter",
+                "task not found"
             ],
             "x-enum-varnames": [
                 "NoError",
                 "GeneralError",
                 "ParamInvalid",
-                "ParamMissing"
+                "ParamMissing",
+                "TaskNotFound"
             ]
         },
         "types.CommonApiResponseData": {
@@ -412,6 +385,37 @@ const docTemplate = `{
                 },
                 "msg": {
                     "description": "message",
+                    "type": "string"
+                }
+            }
+        },
+        "types.CreateTaskRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.UpdateTaskRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "done": {
+                    "type": "boolean"
+                },
+                "title": {
                     "type": "string"
                 }
             }
