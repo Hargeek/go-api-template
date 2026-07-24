@@ -17,7 +17,7 @@ func (r *router) RegisterSwagger(e *gin.Engine) {
 	// programmatically set swagger info description
 	content, err := static.GetErrorCodeEmbed().ReadFile("error_code/error_code.md")
 	if err != nil {
-		logger.Panic("error reading error code file: ", err)
+		logger.Panic("read error code file failed", "error", err)
 		return
 	}
 	docs.SwaggerInfo.Description = string(content)

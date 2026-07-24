@@ -28,3 +28,8 @@ logging:
   output:
   - stdout
   - http.log
+
+# Weather Adapter 示例使用的公共天气服务。
+weather:
+  base_url: https://wttr.in
+  timeout_seconds: 5

@@ -58,6 +58,7 @@ test: ## 运行测试用例及测试编译
 	echo $(TEST_DIRS)
 	@rm -f $(COVERAGE_FILE)
 	set -o pipefail;\
+	trap 'rm -f test.temp' EXIT; \
 	for dir in $(TEST_DIRS); do \
 		go test -v -timeout 20m -coverprofile="test.temp" "$$dir" | tee -a $(COVERAGE_FILE) || exit 1; \
 	done;

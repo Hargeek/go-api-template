@@ -32,10 +32,10 @@ func RunServer() {
 	}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatal("listen: %s\n", err)
+			logger.Fatal("gin server listen failed", "error", err)
 		}
 	}()
-	logger.Info(fmt.Sprintf("gin server is running on 0.0.0.0:%d", config.AppConfig.ServerConfig.HttpPort))
+	logger.Info("gin server started", "address", srv.Addr)
 
 	// 启动 metrics server
 	metricsSrv := &http.Server{
@@ -44,10 +44,10 @@ func RunServer() {
 	}
 	go func() {
 		if err := metricsSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatal("metrics server listen error: %s\n", err)
+			logger.Fatal("metrics server listen failed", "error", err)
 		}
 	}()
-	logger.Info(fmt.Sprintf("metrics server is running on 0.0.0.0:%d/metrics", config.AppConfig.ServerConfig.MetricPort))
+	logger.Info("metrics server started", "address", metricsSrv.Addr, "path", "/metrics")
 
 	// 优雅退出：等待中断信号
 	quit := make(chan os.Signal, 1)
@@ -59,18 +59,18 @@ func RunServer() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Fatal("gin server shutdown error:", err)
+		logger.Error("gin server shutdown error", "error", err)
 	}
 	if err := metricsSrv.Shutdown(ctx); err != nil {
-		logger.Fatal("metrics server shutdown error:", err)
+		logger.Error("metrics server shutdown error", "error", err)
 	}
 	if err := db.Close(); err != nil {
-		logger.Fatal("db shutdown error", err)
+		logger.Error("db shutdown error", "error", err)
 	}
 	// flush 未导出的 Span（必须在最后，确保所有 Span 都已记录完毕）
 	if TelemetryShutdown != nil {
 		if err := TelemetryShutdown(ctx); err != nil {
-			logger.Error("telemetry shutdown error", err)
+			logger.Error("telemetry shutdown error", "error", err)
 		}
 	}
 	logger.Info("all servers exited")

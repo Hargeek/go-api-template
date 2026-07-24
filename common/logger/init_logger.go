@@ -187,7 +187,7 @@ func Fatal(msg string, args ...interface{}) {
 
 func Panic(msg string, args ...interface{}) {
 	logger.Error(msg, args...)
-	panic(fmt.Sprintf(msg, args...))
+	panic(msg)
 }
 
 // --- 带 context 的函数（用于请求链路中，自动附加 trace_id / span_id）---

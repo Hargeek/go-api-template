@@ -29,7 +29,7 @@ func (s *TaskServiceImpl) Create(ctx context.Context, title, description string)
 	}
 	if err := s.dao.CreateTask(ctx, task); err != nil {
 		metrics.TaskOperationsTotal.WithLabelValues("create", "fail").Inc()
-		logger.Error(fmt.Sprintf(errort.MsgTaskCreateFailed, err))
+		logger.ErrorContext(ctx, "task create failed", "error", err)
 		return nil, errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskCreateFailed, err))
 	}
 	metrics.TaskOperationsTotal.WithLabelValues("create", "success").Inc()
@@ -39,7 +39,7 @@ func (s *TaskServiceImpl) Create(ctx context.Context, title, description string)
 func (s *TaskServiceImpl) List(ctx context.Context) ([]model.Task, *errort.ApiError) {
 	tasks, err := s.dao.ListTasks(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf(errort.MsgTaskListFailed, err))
+		logger.ErrorContext(ctx, "task list failed", "error", err)
 		return nil, errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskListFailed, err))
 	}
 	return tasks, nil
@@ -51,7 +51,10 @@ func (s *TaskServiceImpl) GetByID(ctx context.Context, id uint) (*model.Task, *e
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errort.NewApiError(errort.TaskNotFound, fmt.Errorf(errort.MsgTaskNotFound, id))
 		}
-		logger.Error(fmt.Sprintf(errort.MsgTaskGetFailed, id, err))
+		logger.ErrorContext(ctx, "task get failed",
+			"task_id", id,
+			"error", err,
+		)
 		return nil, errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskGetFailed, id, err))
 	}
 	return task, nil
@@ -66,7 +69,10 @@ func (s *TaskServiceImpl) Update(ctx context.Context, id uint, title, descriptio
 	task.Description = description
 	task.Done = done
 	if err := s.dao.UpdateTask(ctx, task); err != nil {
-		logger.Error(fmt.Sprintf(errort.MsgTaskUpdateFailed, id, err))
+		logger.ErrorContext(ctx, "task update failed",
+			"task_id", id,
+			"error", err,
+		)
 		return nil, errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskUpdateFailed, id, err))
 	}
 	return task, nil
@@ -74,7 +80,10 @@ func (s *TaskServiceImpl) Update(ctx context.Context, id uint, title, descriptio
 
 func (s *TaskServiceImpl) Delete(ctx context.Context, id uint) *errort.ApiError {
 	if err := s.dao.DeleteTask(ctx, id); err != nil {
-		logger.Error(fmt.Sprintf(errort.MsgTaskDeleteFailed, id, err))
+		logger.ErrorContext(ctx, "task delete failed",
+			"task_id", id,
+			"error", err,
+		)
 		return errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskDeleteFailed, id, err))
 	}
 	return nil

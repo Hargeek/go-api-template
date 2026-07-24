@@ -354,13 +354,6 @@ const docTemplate = `{
                 "ParamMissing": "missing request parameter",
                 "TaskNotFound": "task not found"
             },
-            "x-enum-descriptions": [
-                "no error",
-                "general error",
-                "invalid request parameter",
-                "missing request parameter",
-                "task not found"
-            ],
             "x-enum-varnames": [
                 "NoError",
                 "GeneralError",

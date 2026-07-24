@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -47,7 +46,7 @@ func newDBWithConfig() {
 	if err != nil {
 		panic("connecting sqlite failed: " + err.Error())
 	}
-	logger.Info(fmt.Sprintf("database connected: driver=sqlite path=%s", sqlite.Path))
+	logger.Info("database connected", "driver", "sqlite", "path", sqlite.Path)
 
 	// 切换 PostgreSQL 时替换上方 sqlite 连接块为：
 	// dsn := fmt.Sprintf(

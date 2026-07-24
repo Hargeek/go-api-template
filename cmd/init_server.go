@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"go-api-template/common/config"
 	"go-api-template/common/logger"
@@ -15,6 +16,7 @@ import (
 	"go-api-template/internal/store/db"
 	"go-api-template/internal/store/db/migrate"
 	"go-api-template/pkg/telemetry"
+	"go-api-template/pkg/weather"
 
 	"github.com/fatih/color"
 )
@@ -45,16 +47,26 @@ func init() {
 	helloService := service.NewHelloServiceImpl()
 	controller.Hello = controller.NewHelloController(helloService)
 
-	// init weather service
-	//weatherAdapter := &adapter.WeatherAdapterImpl{"demo-key"} // 使用字面量初始化
-	//apiKey := config.AppConfig.Weather.Apikey
-	weatherAdapter := adapter.NewWeatherAdapterImpl("demo-key") // 使用构造函数初始化
-	weatherService := service.NewWeatherServiceImpl(weatherAdapter)
-	controller.Weather = controller.NewWeatherController(weatherService)
+	initWeather()
 
 	// init task service
 	taskService := service.NewTaskServiceImpl(d)
 	controller.Task = controller.NewTaskController(taskService)
+}
+
+// initWeather 创建天气客户端并完成 Adapter、Service 和 Controller 装配。
+func initWeather() {
+	weatherClient, err := weather.NewClient(weather.Config{
+		BaseURL: config.AppConfig.WeatherConfig.BaseURL,
+		Timeout: time.Duration(config.AppConfig.WeatherConfig.TimeoutSeconds) * time.Second,
+	})
+	if err != nil {
+		logger.Error("create weather client failed", "error", err)
+		os.Exit(1)
+	}
+	weatherAdapter := adapter.NewWeatherAdapter(weatherClient)
+	weatherService := service.NewWeatherServiceImpl(weatherAdapter)
+	controller.Weather = controller.NewWeatherController(weatherService)
 }
 
 const systemLogo = `
@@ -67,6 +79,12 @@ const systemLogo = `
 
 func showInfoDisplayLogo() {
 	cyan := color.New(color.FgCyan, color.Bold)
-	_, _ = cyan.Println(systemLogo)
-	logger.Info(fmt.Sprintf("GoVersion: %s, Branch: %s, Revision: %s, BuildDate: %s, BuildUser: %s", types.GoVersion, types.Branch, types.Revision, types.BuildDate, types.BuildUser))
+	_, _ = cyan.Print(systemLogo)
+	logger.Info("build information",
+		"go_version", types.GoVersion,
+		"branch", types.Branch,
+		"revision", types.Revision,
+		"build_date", types.BuildDate,
+		"build_user", types.BuildUser,
+	)
 }

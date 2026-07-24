@@ -11,18 +11,21 @@ import (
 )
 
 type WeatherServiceImpl struct {
-	Adapter adapter.WeatherAdapter
+	weatherAdapter adapter.WeatherAdapter
 }
 
-func NewWeatherServiceImpl(adapter adapter.WeatherAdapter) *WeatherServiceImpl {
-	return &WeatherServiceImpl{Adapter: adapter}
+func NewWeatherServiceImpl(weatherAdapter adapter.WeatherAdapter) *WeatherServiceImpl {
+	return &WeatherServiceImpl{weatherAdapter: weatherAdapter}
 }
 
 func (s *WeatherServiceImpl) QueryWeather(ctx context.Context, city string) (string, *errort.ApiError) {
-	result, err := s.Adapter.GetWeather(ctx, city)
+	result, err := s.weatherAdapter.GetWeather(ctx, city)
 	if err != nil {
 		metrics.WeatherQueryTotal.WithLabelValues(city, "fail").Inc()
-		logger.Error(fmt.Sprintf(errort.MsgWeatherQueryFailed, err))
+		logger.ErrorContext(ctx, "weather query failed",
+			"city", city,
+			"error", err,
+		)
 		return "", errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgWeatherQueryFailed, err))
 	}
 	metrics.WeatherQueryTotal.WithLabelValues(city, "success").Inc()

@@ -6,7 +6,7 @@
 [![Contributors](https://img.shields.io/github/contributors/hargeek/go-api-template)](https://github.com/hargeek/go-api-template/graphs/contributors)
 [![License](https://img.shields.io/github/license/hargeek/go-api-template)](./LICENSE)
 
-用于快速构建 Go REST API 后端工程的生产就绪模板，提供完整的分层架构、配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace/Log）和
+用于快速构建 Go REST API 后端工程的生产就绪模板，采用实用型分层架构，并吸收端口与适配器架构的依赖倒置思想，提供配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace/Log）和
 Docker 部署支持。
 
 ## 技术栈
@@ -60,6 +60,7 @@ Docker 部署支持。
 │   └── types/                  # 通用类型、统一响应结构、构建信息变量
 ├── pkg/
 │   ├── telemetry/              # OpenTelemetry 生命周期管理（TracerProvider、resource）
+│   └── weather/                # 天气 HTTP 客户端（连接、超时、外部协议解析示例）
 │   └── utils/                  # 工具函数（预留扩展）
 ├── config/
 │   ├── conf.yaml               # 运行时配置文件（git ignored）
@@ -74,9 +75,31 @@ Docker 部署支持。
 └── Dockerfile                  # 多阶段构建镜像
 ```
 
+## 架构模式
+
+本模板采用实用型分层架构：保留 Controller、Service、Adapter、DAO 的直观目录，同时用能力接口隔离外部系统。
+
+Weather 示例展示了完整调用链：
+
+```text
+WeatherController
+  → WeatherService
+  → WeatherAdapter
+  → WeatherAdapterImpl
+  → pkg/weather.Client
+  → wttr.in HTTP API
+```
+
+该调用链包含两个面向不同调用方的接口边界：Service 依赖公开的 `WeatherAdapter`，AdapterImpl 依赖包内私有的最小 `weatherClient`；具体的 `pkg/weather.Client` 通过 Go 隐式接口实现满足后者。`GetWeather` 调用 `GetCurrent` 不是重复转发：前者负责项目语义转换，后者负责 HTTP 调用和外部协议解析。接口只在需要隔离变化或支持测试替换的位置定义，不要求每个 struct 都配套一个接口。
+
+`pkg` 不是第三方 SDK 的固定存放层。只有连接生命周期、认证注入、超时、重试、协议解析等基础设施逻辑值得独立复用时，才增加对应客户端；简单调用可以直接在 Adapter 中完成。
+
+依赖由 `cmd/init_server.go` 中的 `initWeather()` 统一组装，顺序为 Client → Adapter → Service → Controller。Client/Adapter 构造函数只负责发现并返回初始化错误，`initWeather()` 负责记录错误并决定是否退出，避免基础设施包直接控制应用进程。本模板使用显式构造函数依赖注入，默认不引入 Wire/Fx 容器；当对象图、多套装配或启动关闭生命周期明显复杂化时，再评估引入 DI 框架即可。
+
 ## 开箱即用
 
-- **分层架构**：Controller → Service → Adapter 经典三层分离，各层依赖接口而非实现，便于 Mock 测试和切换实现
+- **实用型分层架构**：Controller → Service → Adapter/DAO，外部依赖通过能力接口反向实现，兼顾简洁与可测试性
+- **显式依赖注入**：在组合根使用构造函数组装依赖并统一处理初始化错误，不依赖全局 Service Locator；保留未来接入 Wire/Fx 的能力
 - **统一响应**：所有接口返回 `{code, msg, data}` 结构，通过 `ApiResponse` 统一收口
 - **错误码体系**：六位数字编码（前三位模块、后三位错误），通过 `go generate` 自动生成 `String()` 方法
 - **配置零值校验**：启动时反射检查所有必填配置项，任何字段为空即 `panic`，防止配置缺漏在运行时才暴露
@@ -164,6 +187,10 @@ logging:
   output:
   - stdout            # 标准输出
   - http.log          # 同时写入文件
+
+weather:
+  base_url: https://wttr.in
+  timeout_seconds: 5
 ```
 
 ### 4. 安装依赖
@@ -237,13 +264,14 @@ docker run -d \
 5. `handler/routers/` — 注册路由，在 `init.go` 的 `InitApiRouter` 中调用
 6. `cmd/init_server.go` — 在 `init()` 中完成依赖装配
 
-### 替换天气 Adapter
+### Weather Adapter 与 pkg Client 示例
 
-`internal/adapter/weather_adapter_impl.go` 中的实现是演示用的 Mock。接入真实第三方 API 时：
+- `internal/adapter/weather_adapter.go` 定义业务需要的外部能力。
+- `internal/adapter/weather_adapter_impl.go` 将天气客户端结果转换为项目内部语义。
+- `pkg/weather/` 封装可复用 HTTP Client、超时、响应大小限制和外部协议 DTO。
+- `cmd/init_server.go` 通过 `initWeather()` 创建 Client、Adapter 和 Service，并完成手动依赖注入。
 
-1. 新建一个实现 `WeatherAdapter` 接口的结构体
-2. 在 `cmd/init_server.go` 中将 API Key 改为从配置读取后传入
-3. 原有业务逻辑和测试代码无需改动
+替换天气供应商时，优先替换 `pkg/weather` 的协议实现或新增另一个 Adapter；`WeatherService` 和 Controller 不需要感知第三方协议变化。
 
 ### 添加新错误码
 
