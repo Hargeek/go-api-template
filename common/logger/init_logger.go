@@ -1,17 +1,23 @@
 package logger
 
 import (
+	// profile:mtl:start
 	"context"
+	// profile:mtl:end
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 
+	// profile:mtl:start
 	"go-api-template/common/types"
+	// profile:mtl:end
 
 	"github.com/spf13/viper"
+	// profile:mtl:start
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/trace"
+	// profile:mtl:end
 )
 
 var (
@@ -71,8 +77,11 @@ func InitLogger() {
 		},
 	})
 
-	handlers := []slog.Handler{localHandler}
+	// 默认使用本地 JSON Handler。
+	logger = slog.New(localHandler)
 
+	// profile:mtl:start
+	handlers := []slog.Handler{localHandler}
 	// OTEL_EXPORTER_ENABLED_LOGS=true 时追加 otelslog bridge handler
 	// 未配置 OTEL_EXPORTER_OTLP_ENDPOINT 时 LoggerProvider 为 noop，handler 不产生额外输出
 	// telemetry.Setup() 必须在 InitLogger() 之前调用，确保 LoggerProvider 已注册
@@ -80,8 +89,9 @@ func InitLogger() {
 		os.Getenv("OTEL_EXPORTER_ENABLED_LOGS") == "true" {
 		handlers = append(handlers, otelslog.NewHandler(types.ServiceName))
 	}
-
 	logger = slog.New(newMultiHandler(handlers...))
+	// profile:mtl:end
+
 	slog.SetDefault(logger)
 }
 
@@ -100,18 +110,21 @@ func getLogLevel() slog.Level {
 	}
 }
 
-// withTrace 从 context 中提取 otel span，将 trace_id / span_id 追加到日志参数中
-// 作为本地 JSON 输出的 fallback：无论 OTEL Log 是否启用，本地日志始终携带 trace_id
-// otelslog bridge 启用时，OTEL 侧会从 context 自动关联，两者互不干扰
+// profile:mtl:start
+
+// withTrace 从 context 中提取 OTEL Span，将 trace_id / span_id 追加到日志参数中。
+// 这是本地 JSON 输出的 fallback：无论 OTEL Log 是否启用，本地日志始终携带 Trace 关联字段。
+// otelslog bridge 启用时，OTEL 侧会从 context 自动关联 Trace，与显式附加到本地 JSON 的字段互不干扰。
+// thin Profile 不包含 Trace 能力，初始化时会连同 Context 日志封装一起移除。
 func withTrace(ctx context.Context, args []interface{}) []interface{} {
 	sc := trace.SpanFromContext(ctx).SpanContext()
-	if !sc.IsValid() {
-		return args
+	if sc.IsValid() {
+		return append(args,
+			slog.String("trace_id", sc.TraceID().String()),
+			slog.String("span_id", sc.SpanID().String()),
+		)
 	}
-	return append(args,
-		slog.String("trace_id", sc.TraceID().String()),
-		slog.String("span_id", sc.SpanID().String()),
-	)
+	return args
 }
 
 // multiHandler 将日志记录分发给多个 slog.Handler
@@ -162,6 +175,8 @@ func (m *multiHandler) WithGroup(name string) slog.Handler {
 	return &multiHandler{handlers: handlers}
 }
 
+// profile:mtl:end
+
 // --- 不带 context 的函数（用于启动/关闭等无请求上下文的场景）---
 
 func Info(msg string, args ...interface{}) {
@@ -190,7 +205,9 @@ func Panic(msg string, args ...interface{}) {
 	panic(msg)
 }
 
-// --- 带 context 的函数（用于请求链路中，自动附加 trace_id / span_id）---
+// profile:mtl:start
+
+// --- 带 context 的函数（用于请求链路中，自动关联 Trace 字段）---
 
 func InfoContext(ctx context.Context, msg string, args ...interface{}) {
 	logger.InfoContext(ctx, msg, withTrace(ctx, args)...)
@@ -207,6 +224,8 @@ func ErrorContext(ctx context.Context, msg string, args ...interface{}) {
 func DebugContext(ctx context.Context, msg string, args ...interface{}) {
 	logger.DebugContext(ctx, msg, withTrace(ctx, args)...)
 }
+
+// profile:mtl:end
 
 func BaseLogger() *slog.Logger {
 	return logger

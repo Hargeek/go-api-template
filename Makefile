@@ -6,11 +6,15 @@ TEST_DIRS := $(sort $(dir $(filter %_test.go,$(ALL_SRC))))
 COVERAGE_FILE := coverage.out
 
 SERVICE_NAME ?= go-api-template
-BRANCH 		 ?= $(shell git name-rev --name-only HEAD|cut -d '/' -f 3-)
-REVISION     ?= $(shell git rev-parse HEAD)
+BRANCH 		 ?= $(shell git name-rev --name-only HEAD 2>/dev/null | cut -d '/' -f 3-)
+REVISION     ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE   ?= $(shell date -I'seconds')
 BUILD_USER   ?= $(shell whoami)@$(shell hostname)
-TAG_VERSION  ?= $(shell git describe --tags --abbrev=0)
+TAG_VERSION  ?= $(shell git describe --tags --abbrev=0 2>/dev/null)
+# profile:init:start
+name         ?=
+module       ?= $(name)
+# profile:init:end
 
 VERSION_LDFLAGS := \
 	-X ${SERVICE_NAME}/common/types.Branch=$(BRANCH) \
@@ -29,6 +33,16 @@ help:
 install-hook: ## 安装一些git hook
 	cp -r .githooks/* .git/hooks/
 	chmod +x .git/hooks/*
+
+# profile:init:start
+init: ## 初始化项目名称和Go Module，例如 make init name=demo module=github.com/example/demo
+	@test -n "$(name)" || (echo "错误：必须提供 name，例如 make init name=demo module=github.com/example/demo" >&2; exit 1)
+	go run ./scripts/init-project --profile full --name "$(name)" --module "$(module)"
+
+init-thin: ## 初始化项目并移除Metrics/Trace/OTEL，例如 make init-thin name=demo module=github.com/example/demo
+	@test -n "$(name)" || (echo "错误：必须提供 name，例如 make init-thin name=demo module=github.com/example/demo" >&2; exit 1)
+	go run ./scripts/init-project --profile thin --name "$(name)" --module "$(module)"
+# profile:init:end
 
 swagger: ## 生成swagger接口文档
 	sh -c 'swag fmt && swag init  --parseDependency --parseInternal --parseDepth 1'
@@ -69,6 +83,7 @@ local: ## 运行本地环境
 	cp config/conf-local.yaml config/conf.yaml
 	go run main.go
 
+# profile:mtl:start
 trace-up: ## 启动本地 Trace 环境：OTEL Collector + Jaeger
 	docker compose -f deploy/local/docker-compose.trace.yml up -d
 	@echo "Jaeger UI:          http://localhost:16686"
@@ -93,6 +108,7 @@ obs-up: ## 启动本地完整可观测性环境：Collector + Jaeger + Loki + Gr
 
 obs-down: ## 停止本地完整可观测性环境
 	docker compose -f deploy/local/docker-compose.obs.yml down
+# profile:mtl:end
 
 .PHONY: clean
 clean:

@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	// profile:mtl:start
 	"context"
 	"fmt"
+	// profile:mtl:end
 	"os"
 	"time"
 
@@ -15,18 +17,24 @@ import (
 	"go-api-template/internal/store/dao"
 	"go-api-template/internal/store/db"
 	"go-api-template/internal/store/db/migrate"
+	// profile:mtl:start
 	"go-api-template/pkg/telemetry"
+	// profile:mtl:end
 	"go-api-template/pkg/weather"
 
 	"github.com/fatih/color"
 )
 
+// profile:mtl:start
 // TelemetryShutdown 由 RunServer() 在优雅退出时调用，确保未导出的 Span 全部 flush
 var TelemetryShutdown func(context.Context) error
+
+// profile:mtl:end
 
 func init() {
 	config.LoadConfig() // 初始化配置
 
+	// profile:mtl:start
 	// 注册 TraceProvider/LoggerProvider
 	shutdown, err := telemetry.Setup(context.Background())
 	if err != nil {
@@ -34,11 +42,12 @@ func init() {
 		os.Exit(1)
 	}
 	TelemetryShutdown = shutdown
+	// profile:mtl:end
 
-	logger.InitLogger()   // 初始化 logger，挂载 otelslog bridge
+	logger.InitLogger()   // 初始化 logger
 	showInfoDisplayLogo() // 显示 logo
 
-	migrate.AutoMigrate() // 自动迁移数据库表结构（触发 GORM 初始化 + OTEL Plugin 注册）
+	migrate.AutoMigrate() // 自动迁移数据库表结构
 
 	// init dao
 	d := dao.NewDao(db.GetGORM())

@@ -1,7 +1,6 @@
 # Log 说明
 
-本项目集成 `log/slog` + `otelslog bridge`，本地输出保持 JSON 格式，可按需通过环境变量开启 OTEL 导出，将日志送入 Collector →
-Loki，在 Grafana 中实现日志与 Trace 的关联跳转。
+本项目基于 `log/slog` 输出 JSON 结构化日志，支持 stdout、stderr 和文件等输出目标；同时集成 `otelslog bridge`，可按需将日志送入 Collector 和 Loki，并在 Grafana 中实现日志与 Trace 的关联跳转。
 
 ---
 
@@ -24,9 +23,7 @@ Loki，在 Grafana 中实现日志与 Trace 的关联跳转。
   "method": "GET",
   "path": "/api/v1/tasks",
   "query": "",
-  "user_agent": "curl/8.7.1",
-  "trace_id": "e097076fe9bd9d1d3976f703c417f5b4",
-  "span_id": "6ffdb393a2c9db18"
+  "user_agent": "curl/8.7.1"
 }
 ```
 
@@ -116,12 +113,14 @@ Grafana 启动后自动加载 Loki 和 Jaeger 数据源。在 Grafana → Explor
 所有涉及请求上下文的日志，使用带 context 的函数：
 
 ```go
-// 正确：自动附加 trace_id / span_id（通过 otelslog bridge 从 ctx 提取）
+// 正确：保留请求上下文，便于扩展日志关联字段
 logger.InfoContext(ctx, "task created", slog.Uint64("id", uint64(task.ID)))
 
-// 不推荐：丢失 trace 关联
+// 不推荐：请求链路中丢失上下文
 logger.Info("task created", slog.Uint64("id", uint64(task.ID)))
 ```
+
+日志会通过 `otelslog bridge` 从 `ctx` 中提取 `trace_id` 和 `span_id`。
 
 启动/关闭等无请求上下文的场景使用不带 context 的函数：
 

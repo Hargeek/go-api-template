@@ -1,0 +1,5 @@
+# 所有 Profile 初始化后都不保留的模板说明和静态资源。
+docs/images
+docs/log说明.md
+docs/metric说明.md
+docs/trace说明.md

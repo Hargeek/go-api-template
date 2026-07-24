@@ -1,0 +1,7 @@
+# thin Profile 不保留的纯 MTL 实现和联调资源。
+common/metrics
+common/logger/init_logger_test.go
+handler/middle/metrics.go
+handler/middle/trace.go
+pkg/telemetry
+deploy/local

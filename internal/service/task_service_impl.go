@@ -9,7 +9,9 @@ import (
 
 	errort "go-api-template/common/error"
 	"go-api-template/common/logger"
+	// profile:mtl:start
 	"go-api-template/common/metrics"
+	// profile:mtl:end
 	"go-api-template/internal/store/dao"
 	"go-api-template/internal/store/model"
 )
@@ -28,11 +30,15 @@ func (s *TaskServiceImpl) Create(ctx context.Context, title, description string)
 		Description: description,
 	}
 	if err := s.dao.CreateTask(ctx, task); err != nil {
+		// profile:mtl:start
 		metrics.TaskOperationsTotal.WithLabelValues("create", "fail").Inc()
+		// profile:mtl:end
 		logger.ErrorContext(ctx, "task create failed", "error", err)
 		return nil, errort.NewApiError(errort.GeneralError, fmt.Errorf(errort.MsgTaskCreateFailed, err))
 	}
+	// profile:mtl:start
 	metrics.TaskOperationsTotal.WithLabelValues("create", "success").Inc()
+	// profile:mtl:end
 	return task, nil
 }
 

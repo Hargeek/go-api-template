@@ -6,8 +6,7 @@
 [![Contributors](https://img.shields.io/github/contributors/hargeek/go-api-template)](https://github.com/hargeek/go-api-template/graphs/contributors)
 [![License](https://img.shields.io/github/license/hargeek/go-api-template)](./LICENSE)
 
-用于快速构建 Go REST API 后端工程的生产就绪模板，采用实用型分层架构，并吸收端口与适配器架构的依赖倒置思想，提供配置管理、日志、接口文档、错误码体系、可观测性（Metrics/Trace/Log）和
-Docker 部署支持。
+用于快速构建 Go REST API 后端工程的生产就绪模板，采用实用型分层架构，并吸收端口与适配器架构的依赖倒置思想，提供配置管理、日志、接口文档、错误码体系、Metrics、Trace、Log 与 Trace 关联和 Docker 部署支持。
 
 ## 技术栈
 
@@ -54,23 +53,22 @@ Docker 部署支持。
 │       └── model/              # 数据模型（task.go 为示例）
 ├── common/                     # 公共基础库
 │   ├── config/                 # 配置结构定义与加载（含零值校验）
-│   ├── logger/                 # 日志初始化与封装（含 InfoContext，自动附加 trace_id）
-│   ├── metrics/                # Prometheus 指标注册（HTTP 指标、build_info、业务 Counter 示例）
 │   ├── error/                  # 错误码定义（go generate 生成字符串映射）
+│   ├── logger/                 # 结构化日志初始化与 Context 日志封装
+│   ├── metrics/                # Prometheus 指标注册与业务指标示例
 │   └── types/                  # 通用类型、统一响应结构、构建信息变量
 ├── pkg/
-│   ├── telemetry/              # OpenTelemetry 生命周期管理（TracerProvider、resource）
+│   ├── telemetry/              # OpenTelemetry 生命周期管理
+│   ├── utils/                  # 工具函数（预留扩展）
 │   └── weather/                # 天气 HTTP 客户端（连接、超时、外部协议解析示例）
-│   └── utils/                  # 工具函数（预留扩展）
 ├── config/
 │   ├── conf.yaml               # 运行时配置文件（git ignored）
 │   └── conf.yaml.example       # 配置模板
 ├── deploy/
-│   └── local/                  # 本地联调基础设施
-│       ├── docker-compose.yml  # OTEL Collector + Jaeger
-│       └── otel-collector-config.yaml
-├── scripts/                    # 运维/辅助脚本（预留扩展）
-├── docs/                       # swag 自动生成的 Swagger 文档
+│   └── local/                  # Collector、Jaeger、Loki、Grafana 本地联调资源
+├── docs/                       # Swagger 文档和 MTL 专题说明
+├── profiles/                   # 项目初始化 Profile 删除清单
+├── scripts/                    # 项目初始化工具（初始化后自动删除）
 ├── Makefile                    # 常用开发命令
 └── Dockerfile                  # 多阶段构建镜像
 ```
@@ -137,16 +135,25 @@ WeatherController
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/Hargeek/go-api-template.git
+git clone https://github.com/Hargeek/go-api-template.git your-project-name
+cd your-project-name
 ```
 
-### 2. 重命名为你的项目
+### 2. 初始化项目
+
+默认初始化仅修改项目名称与 Go Module：
 
 ```bash
-mv go-api-template your-project-name
-cd your-project-name
-sed -i '' 's/go-api-template/your-project-name/g' $(grep go-api-template -rl .)
+make init name=your-project-name module=github.com/your-org/your-project-name
 ```
+
+如果项目不需要 MTL，可在初始化时同时移除 Metrics、Trace、OTEL 代码、依赖和本地联调资源，并将 Context 日志调用简化为普通日志调用：
+
+```bash
+make init-thin name=your-project-name module=github.com/your-org/your-project-name
+```
+
+`module` 可省略，默认与 `name` 相同；正式项目建议填写完整 Go Module。初始化命令仅允许在未修改的模板工作区执行。执行完成后，README 仅保留项目标题，并自动删除初始化脚本、Profile 清单及对应 Make 命令。
 
 ### 3. 准备配置文件
 
@@ -162,7 +169,7 @@ debug: false          # true 时开启 pprof 和 gin debug 日志
 env: local            # 环境标识，健康检查接口会返回此值
 server:
   http_port: 8080
-  metric_port: 8081   # Prometheus 抓取端口，/metrics 端点
+  metric_port: 8081   # Prometheus /metrics 抓取端口
 
 # 数据库：sqlite / postgres 二选一，填哪个用哪个
 sqlite: # 默认，开箱即用
@@ -217,6 +224,8 @@ make local        # 使用本地专用配置运行
 
 ```bash
 make help              # 查看所有命令说明
+make init name=demo module=github.com/example/demo       # 初始化项目
+make init-thin name=demo module=github.com/example/demo  # 初始化并移除 MTL
 make run               # 运行默认环境
 make run-air           # air 热重载开发
 make local             # 使用 conf-local.yaml 运行
@@ -283,13 +292,13 @@ make generate-error
 
 错误码编码规则：六位数字，前三位为模块号，后三位为错误序号（如 `101001` = 系统模块第 1 个参数错误）。
 
-## 文档
+## 相关文档
 
 | 文档                             | 说明                                        |
 |--------------------------------|-------------------------------------------|
+| [Log说明](./docs/log说明.md)       | 结构化日志配置与写入规范                         |
 | [Metric说明](./docs/metric说明.md) | Prometheus 指标采集、添加业务指标、类型速查               |
 | [Trace说明](./docs/trace说明.md)   | 链路追踪、环境变量配置、本地 Jaeger 联调、context 透传       |
-| [Log说明](./docs/log说明.md)       | 结构化日志、OTEL bridge、本地 Loki+Grafana 联调、写入规范 |
 
 ## License
 
